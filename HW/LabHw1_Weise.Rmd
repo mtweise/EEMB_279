@@ -3,7 +3,7 @@ title: "Lab 1 Homework"
 author: 'Madison Weise'
 output:
   html_document: default
-date: "January 9, 2025"
+date: "January 12, 2025"
 ---
 
 # Homework exercise: Lab 1
