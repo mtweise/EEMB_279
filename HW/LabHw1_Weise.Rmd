@@ -1,0 +1,109 @@
+---
+title: "Lab 1 Homework"
+author: 'Madison Weise'
+output:
+  html_document: default
+date: "January 9, 2025"
+---
+
+# Homework exercise: Lab 1
+
+
+1A. Use the : or `c()` or `seq()` function to create a vector of numbers that ranges from 1 to 10. (1 pt)
+1B. Name the vector "vector.1" using variable assignment. (1 pt)
+1C. Print the vector. (1 pt)
+*Note: Make sure to ANNOTATE your code for full credit!*
+```{r}
+q1a <- c(1:10) #vector named q1a contains numbers 1-10
+vector.1 <- q1a #renamed the vector to vector.1
+vector.1 #prints vector
+```
+
+2A. Use the `rep()` function to create a holding vector for a `for()` loop populated with NaN. Make this vector the same length as vector.1 from #1 (a length of 10). (1 pt)
+2B. Name the vector "vector.2" using variable assignment. (1 pt)
+2C. Print the vector. (1 pt)
+*Note: Make sure to ANNOTATE your code for full credit!*
+```{r}
+vector.2 <- rep(NaN, times = length(vector.1)) #vector.2 is populated with NaN and it is the same length as vector.1
+vector.2 #print vector.2
+```
+
+3. Write in words what each line of code means as an annotation (5 pts)
+```{r}
+vector.1 <- 1:10 # a vector named vector.1 was created that contains the numbers 1-10
+
+vector.1 # prints vector.1 (1,2,3,4...10)
+
+vector.2 <- rep(NaN, times = length(vector.1)) # a vector named vector.2 was created that is the same length as vector.1 (10 positions) and is currently filled with NaN values as a placeholder for our future values
+
+for(i in 1:length(vector.1)) { # Loop over each index from 1 to the length of vector.1
+  vector.2[i] <- vector.1[i] + 1 # The value in vector.2 will become the value in vector.1 plus 1
+} # end of for loop
+
+vector.2 #prints vector.2 (2,3,4,...11)
+```
+
+4. In #3 you used the letter 'i' to denote each variable in vector.1 and vector.2. If you replaced 'i' with 'j', would anything change about your output? Please explain your answer in the space below. (2 pts)
+I could replace the letter 'i' with anything (such as 'j' or 'puppies'). As long as I was consistent in changing all of the 'i's to another character/word then the output would remain the same.
+
+5. We will use a `for()` loop to iterate over a vector and solve for variable 'y' using the `y = mx + b` equation. Please follow the prompts below. Some prompts have been completed for you. (8 pts)
+*Note: Make sure to ANNOTATE your code for full credit!*
+```{r}
+# Use variable assignment to assign 10 as b and 1 as m
+b <- 10 #variable b is 10
+m <- 1 #variable m is 1
+
+# Create a vector that ranges from 1 to 100 and name it 'x' using variable assignment. (2 pts)
+x <- c(1:100) #vector 'x' that ranges from 1 to 100
+
+######################################
+
+# Create a holding vector for 'y' using the rep() function that is of the same length as vector x, but populate this vector with NaN. (2 pts)
+####### WRITE YOUR ANSWER HERE #######
+
+y <- rep(NaN, times= length(x)) #vector 'y' is populated with Nan and is the same length as vector 'x' (1:100)
+
+######################################
+
+# Write out what each line below means in words:
+for (i in 1:length(x)) { # for every index position from the first index to the last index of vector 'x' (aka the same length as vecotr 'x') (1pt)
+  y[i] <- m * x[i] + b # vector 'y' at index 'i' will be equal to variable m times the value at index 'i' in vecotr 'x' plus the variable 'b' (1pt)
+}
+
+y # Print y (1 pt)
+
+# [1]  11  12  13  14  15  16  17  18  19  20  21  22  23  24  25  26  27  28  29
+# [20]  30  31  32  33  34  35  36  37  38  39  40  41  42  43  44  45  46  47  48
+# [39]  49  50  51  52  53  54  55  56  57  58  59  60  61  62  63  64  65  66  67
+# [58]  68  69  70  71  72  73  74  75  76  77  78  79  80  81  82  83  84  85  86
+# [77]  87  88  89  90  91  92  93  94  95  96  97  98  99 100 101 102 103 104 105
+# [96] 106 107 108 109 110
+
+
+######################################
+
+# Use the plot function to plot y as a function of x 
+plot(y~x)
+```
+
+6. Write a `for()` loop to 1) take the square root and then 2) add 2 for each value in a vector. 
+*Note: Make sure to ANNOTATE your code for full credit!*
+```{r}
+# vector of values
+fibseq <- c(0, 1, 1, 2, 3, 5, 8, 13, 21, 34) #vector 'fibseq' contains the numbers 0,1,1,2,3,5...
+
+# create a holding vector (1 pt)
+vector.q6 <- rep(NaN, times=length(fibseq)) #created a vector called vector.q6 that is filled with NaN for the length that vector fibseq is (10 positions)
+
+# write a for() loop (2 pts)
+for(i in 1:length(fibseq)) { #for every index from the first position to the end of vector 'fibseq'
+  vector.q6[i] <- sqrt(fibseq[i]) + 2 #vector.q6 at index 'i' will be equal to the square root of the value at index 'i' in vector 'figseq' plus 2
+}  #end of for loop
+vector.q6 #print vector.q6
+
+
+###########################################
+
+vector.q6# print the final vector (1 pt)
+
+```

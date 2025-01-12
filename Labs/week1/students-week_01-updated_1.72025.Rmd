@@ -1,0 +1,664 @@
+---
+title: 'EEMB 179 -- Lab 1: Introduction to R'
+author: 'Mads Weise'
+output:
+  html_document: default
+date: "January 9, 2025"
+---
+
+# 0. Getting oriented
+
+## What is this?
+
+The format of code we'll be working with this quarter in what's called an **RMarkdown** document. This allows you to write code and integrate it with text, which is great for the format of this class where we will code but also talk about the mathematics behind models. Additionally, this type of document is very powerful because it allows you to output a file via what's called "knitting", or putting all that code + text into a format that is in `.html`, `.doc`, or `.pdf`.
+
+## Important parts of an RMarkdown document
+
+**1. code chunks**: usually in lighter colors than the background. These will run as code, i.e. everything you put in a code chunk is "code." Code chunks are delineated with three slanted dashes and `{r}` at the top, and three slanted dashes at the bottom.
+
+If you want to evaluate (i.e. run) *all* the code in a chunk, you can click the green 'play' button in the top right corner of the chunk. If you click the down arrow with the green line, you can run all the code chunks up until the selected chunk. Other run options are in the top right corner, under 'Run'.
+
+**2. text**: everything else outside a code chunk! For example, this is normal text that is not being evaluated as code.
+
+**3. YAML header**: at the top of the document, there is a header that contains the title of the document, the author name (yours!), the date, and the output options for the RMarkdown document. There are a few possible options for outputs, but the easiest ones to use are either **html** or **word docs**. PDFs are very clean, but knitting them can be tricky.
+
+Info on how to format your RMarkdown document can be found [here](https://rstudio.com/wp-content/uploads/2015/02/rmarkdown-cheatsheet.pdf).
+
+## How do I knit an RMarkdown document?
+
+You can knit the whole document by hitting the 'Knit' button in the top middle of the script pane. If you just hit the button, the format will be whatever is in the **YAML header** as the default output. However, you can change that by clicking on the drop down menu.
+
+When you knit, you'll see the progress of rendering that document in the 'R Markdown' tab in the console pane below. Everything is run from the top to the bottom of the document, so you'll have to make sure that all the necessary code is in the document before you knit. **Just because your code runs doesn't mean it will knit properly!**
+
+If there are any errors in knitting, you can fix them! A message will pop up in the console, and you can go back to that line of code and fix it.
+
+## Why is knitting important?
+
+For this class, you'll be turning in your homework in the form of a knitted document (i.e. not an RMarkdown!) and without all the information from lab. Therefore, you'll need to be comfortable with 1) making sure all the necessary code is in a new RMarkdown document for your homework, and 2) fixing errors as they come up. A full guide to knitting is on Canvas for your reference.
+
+# 1. Inserting and writing code
+
+## Inserting code
+
+You can insert code chunks in the following ways:\
+1. using the insert button in the top right of the script pane\
+2. using a keyboard shortcut: for Macs, this is Command + Option + I, and for Windows, this is Ctrl + Alt + I.
+
+Try it below!
+
+## Writing code
+
+-   Let's type up some code within the chunk.
+
+```{r}
+1 + 1
+2 + 2
+```
+
+# 2. Executing code
+
+-   We can tell R to execute code in a variety of ways --
+
+    -   Within the chunk, you can press the 'Play' button.
+
+    -   Keyboard shortcut: Shift+Cmd+Enter (for mac) executes everything in the chunk.
+
+    -   Keyboard shortcut: Cmd+Enter executes the line your cursor is located on or the line(s) you have highlighted.
+
+-   You'll notice a green bar appear next to the lines of code you have executed. A red bar will appear if there is an error in a given line of code.
+
+-   Our code should also appear in the Console (bottom left pane) if you have correctly executed it.
+
+-   After your code executes, you can see the output after your chunk in the Source pane or in the Console pane. In the .Rmd, you can view the output in a new window, expand/collapse the output, or delete the output after the chunk
+
+-   The gear wheel and the downward play arrow within the chunk will allow you access chunk preferences or play all previous chunks (depending on where your cursor is).
+
+```{r}
+1 - 1
+1 + 1
+1 + 2
+```
+
+-   It's important to annotate your code to remind yourself what different lines of code mean, why you used this particular function, etc.
+
+    -   You can make notes outside the chunk by typing as usual. If you're interested in formatting text OUTSIDE the chunk there is a resource on how to do so here: [R Markdown Cheatsheet](https://www.rstudio.com/wp-content/uploads/2015/02/rmarkdown-cheatsheet.pdf).
+
+    -   If you would like to make notes inside the chunk, add a '\#' before your note and type as usual. Your notes will be colored green. Your code will be everything NOT in green.
+
+    ```{r}
+    1 + 1 # addition
+    1 - 1 # subtraction
+    1 * 1 # multiplication
+    1 / 1 # division
+    ```
+
+# 3. Functions, arguments and variable assignment
+
+-   Why are functions important?
+
+    -   We often want R to something more complicated than basic mathematical calculations. To do this, we must use **functions**, which are summarized bits of code that perform a specific task. Whether that be generating data, manipulating the data into a new structure, performing a statistical analysis or graphically displaying data, you will need to know to call and use a function. Functions can be written yourself or you can use functions that have been pre-defined in `base` R (provided functions with original installation) or external R packages (functions written by everyday users like yourself!).
+
+\newline
+
+-   There are two pieces to running code in R:
+
+    -   **Functions** - This tells R what we want it to do for us. Functions will always be followed by a set of parentheses. For example, there is a `sum()` function in R that tells R we want it to calculate the sum for a set of variables.
+
+    -   **Arguments** - Within the function (within the parentheses) you must supply an argument(s). Arguments tell the function -- (1) how you would like it to perform that task and (2) what data you want the task performed on.
+
+-   To see the variety of arguments that are available within a function --
+
+```{r}
+?sum # or type the function in the 'Help' tab to see all documentation
+```
+
+Here's an example of a function and arguments. What is the function, and what are the arguments?
+
+```{r}
+sum(1, 2, 3, 4) 
+```
+
+What new arguments are in this example? What do you think they do?
+
+```{r}
+sum(1, 2, 3, NA, na.rm = TRUE) 
+```
+
+# 4. Variable Assignment
+
+-   A **variable** (more generally called an **object**) is data we save in our R environment. If we do not assign information as a variable, we have no way to call, save or manipulate data in the R environment. The assignment operator is \<- or =. In words, imagine this symbols as 'is' or 'gets'. **Variables** that you assign in R can also be called into functions and thus would also be categorized as an **argument** in that context. You should also get into the habit of saving any output generated by **function**.
+
+```{r}
+y <- 5 # this assigns 'y' as 5, but you will not see an output unless you call the assigned variable
+
+y # if we call, 'y' we should see the output as '5'
+```
+
+```{r}
+y = 5 # this does the exact same thing, but use <- exclusively, except when working within a function 
+```
+
+```{r}
+y <- 4 # this reassigns 'x' as 4 and does NOT save the previous assignment, so be careful! 
+
+# How can we confirm the change in variable assignment?
+```
+
+```{r}
+#3 <- 5 # you can't use any numerics in your assignment!
+#3.dog <- 5 # you can't use any numerics in your assignment!
+```
+
+```{r}
+# You can assign larger pieces of data such as --
+
+z <- 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8
+z
+```
+
+```{r}
+# Best practices recommend that you assign new variables after a modification, rather than overwriting previous variables. 
+
+# For example -- 
+
+x <- 4 # assign x as 4
+
+x
+
+y <- 2 # assign y as 2
+
+y
+
+xy <- x + y # Let's say we want to add x and y, we should name the output something different from our input values of 'x' or 'y'. 
+xy
+```
+
+## a note about error messages
+
+Making mistakes when writing/running code is inevitable. You are going to do it, and that's ok! R gives you error messages when something has gone wrong, and these have a bad rap because they are scary. However, error messages can be really handy to figure out what is going on with your code, and can give you clues on how to fix it.
+
+For example, if you run the following code chunk:
+
+```{r include = FALSE, eval = FALSE}
+d + e
+```
+
+You're trying to add `d` and `e` together, but the error message says: `Error: object 'd' not found`. This means that there is no object called `d` in your environment. Let's try that again:
+
+```{r include = FALSE, eval = TRUE}
+d <- 5
+d + e
+```
+
+Now you're getting the message `Error: object 'e' not found`. Let's try that a third time:
+
+```{r}
+e <- 6
+d + e
+```
+
+That's better. Not all your error messages are going to be this straightforward, but they are almost always going to be informative.
+
+# 5. How to save your workspace and your data
+
+-   When you change anything within your .Rmd file the title will turn red and an asterisk will appear. You can save changes by pressing the save button.
+
+-   If you would like create a new file -- you'll go the top left hand corner of the screen (white page with green plus symbol) and select 'R markdown'. Make sure to press the save button and remember where you have saved it!
+
+-   If you're using a personal computer, it would be ideal to create a new folder on your desktop to keep your lab files in. If you will be using the lab computers, do not count on your files being saved after you log out, so make sure to email the file to yourself or upload it to a cloud based service (e.g., Box, Dropbox, Google Drive).
+
+# 6. How do we generate, categorize and manipulate data?
+
+#### A. Types of data in R
+
+-   A **vector** is one-dimensional sequence of data of the same type (e.g., a string of numbers). This is the most basic data type in R.
+
+-   A **matrix** is a data element in two-dimensions (has rows and columns). Same as vector, the components in a matrix must be of the same basic type (e.g., all numbers).
+
+    -   An **array** is similar to a matrix, but can be used for higher-order dimensional data. We won't cover these explicitly, but there are functions to generate them.
+
+    -   Vectors, matrices and arrays can only hold one data type, but what if we want to hold data that contains characters and numbers?
+
+-   A **data frame** is more general than a matrix, in that different columns can have different data types within them (numeric, character, factor, etc.). The data frame is the most common data type we are going to use in this class.
+
+-   A **list** is an ordered collection of data. A list allows you to gather a variety of (possibly unrelated) objects under one name because there is no restriction on data types or length of the components.
+
+#### B. Vectors
+
+-   We can create vectors with the `c()` or concatenate function:
+
+```{r}
+x <- 1 # this is a vector
+x
+
+y <- c(1, 3, 5, 7) # we can also use the `c()` function, which stands for concatenate, to create a string of vectors 
+y
+
+z <- c(x, y) # `c()` can also concatenate multiple vectors
+z
+```
+
+-   We can also create vectors with the colon operator to generate a sequence of numbers:
+
+```{r}
+x <- 1:10
+x
+```
+
+-   We can use the `seq()` function create a sequence of values in pre-defined steps:
+
+```{r}
+seq(from = 0, to = 10, by = 2)
+
+# are there other arguments we can use?
+
+?seq
+```
+
+-   We can use the `rep()` function to repeat or replicate values as well:
+
+```{r}
+rep(1:3, times = 2) # repeats the sequence 1 to 3 twice 
+
+rep(1:3, each = 2) # repeats each variable twice in the sequence of 1 to 3
+
+rep(1:3, length.out = 10) # repeats the sequence 1:3 with a vector of length 10
+
+x <- 1:5
+rep(x, length.out = 10) # the input can also be a vector
+
+# are there other arguments we can use? 
+```
+
+-   Vectors can be manipulated in the same way numerical values can:
+
+```{r}
+x <- c(1:10)
+x
+
+y <- c(1, 2, 1, 8, 3, 2, 4, 3, 1, 2)
+y
+
+x + y
+x - y
+x * y
+x / y
+```
+
+-   If your vectors are different lengths, the shorter one is repeated (sometimes fractionally):
+
+```{r}
+x <- c(1:10)
+y <- c(1,2)
+x
+y
+
+x + y
+x * y
+```
+
+-   The `length()` function returns the number of elements in a vector
+
+```{r}
+length(x)
+```
+
+-   Brackets are useful to identify parts of a vector. This idea will be important when we move to two-dimensional data with rows and columns:
+
+```{r}
+x <- seq(from = 10, to = 30, by = 1) # one dimensional vector
+
+x[1] # first element of the vector
+
+x[2] # second element
+
+x[length(x)] # last element 
+
+x[1:3] # first three elements
+
+x[-1] # first element excluded
+
+x[x < 20] # what does this do?
+
+x < 20 # what is the difference between this line and the code above it? 
+```
+
+-   Logical operators are also useful for all data types:
+
+```{r}
+x <- seq(from = 1, to = 10, by = 1)
+x
+
+y <- seq(from = 11, to = 20, by = 1)
+
+y <- x < 5
+z <- x < 7
+y
+z
+
+# List of logical operators:
+# <, <= less than or less than or equal to
+# >, >= greater than or greater than or equal to
+# == for exact equality
+# != for inequality
+```
+
+#### C. Matrices and Arrays
+
+-   Matrices have dimensions and vectors do not. We can use the `dim()` command to get the dimensions of a matrix:
+
+```{r}
+x <- c(1:10)
+x
+dim(x) # does not work for a vector
+
+x <- matrix(1:10, nrow = 2, ncol = 5, byrow = T)
+x
+dim(x) # works
+
+```
+
+-   The `array()` function also works:
+
+```{r}
+x <- array(1:20, dim=c(4,5))
+x
+```
+
+-   You can initialize (or pre-fill) vectors, matrices or arrays with zeros or NAs:
+
+```{r}
+a <- rep(0, times = 10)
+a
+
+b <- matrix(1:10, nrow = 2, ncol = 5, byrow = T)
+b
+
+c <- array(0, dim = c(3, 10))
+c
+
+# You can also use NA (Not Available) or NaN (Not a Number) to pre-fill data types
+d <- rep(NaN, times = 10)
+d
+```
+
+-   You can also transpose a matrix with the `t()` function to switch the rows and columns:
+
+```{r}
+x
+t(x)
+```
+
+#### D. Data Frames
+
+-   You can think of a data frame as a more generalized form of a matrix. Whereas a matrix can only hold information of one type (e.g., numbers), a data frame can hold information of different types column-wise.
+
+-   Column Types (with examples)
+
+    -   Character : "a", "b", "c"
+    -   Numeric : 10, 10.2
+    -   Integer : 5
+    -   Logical : TRUE or FALSE
+    -   Complex : 1 + 4i
+    -   Factors : "low", "medium", "high"
+
+    ```{r}
+    dat <- data.frame(id = letters[1:10], 
+                      x = seq(0, 0.9, by = 0.1), 
+                      y = 1:10L, # the L makes it an integer!
+                      answer = c(TRUE, FALSE))
+
+    dat
+
+    str(dat)
+    ```
+
+-   Again, we can see the dimensions, or shape, of the data frame like this:
+
+```{r}
+dim(dat)
+
+# How many rows and columns are there? 
+#rows then columns
+```
+
+-   If we want to get a single value from the data frame, we can provide an index in square brackets:
+
+```{r}
+# Take the value in the 1st row and 2nd column of dat, and store it in x
+dat
+x <- dat[1, 2]
+x
+
+# Take the value in the 4throw and 3rd column of dat, and store it in y
+y <- dat[4, 3]
+y 
+```
+
+-   We can select whole sections as well. For example, we can select the first 3 rows of values for the first four variables (columns) like this:
+
+```{r}
+p <- dat[1:3, 1:4] # similar to when creating vectors, the : symbol tells are to start index 1 and go to index 2, this does not need to start 1
+
+p
+```
+
+-   You can also use the `c()` function select non-contiguous values:
+
+```{r}
+dat[c(1, 3, 5), c(2, 3, 4)] # self check in: which is row argument and which is column arugment?
+```
+
+-   We also don't have specify explicit rows and columns if we want all rows or all columns:
+
+```{r}
+# All columns from row 1
+dat[1, ]
+
+# All rows from column 4
+dat[, 4]
+```
+
+#### E. Lists
+
+-   Lists are another useful way to store data of different types in an ordered way:
+
+```{r}
+abc <- letters[1:10]
+b <- seq(0, 0.9, by = 0.1)
+y <- 1:10
+answer <- c(TRUE, FALSE)
+
+new.list <- list(abc, b, y, answer)
+new.list
+str(new.list)
+
+# Similar to subsetting in a data frame, you can isolate elements of a list with 
+    # [[]] - within a given list
+    # [] - within a given data type
+
+new.list[[1]][1] # check: what if we did [[2]][1]?
+```
+
+#### F. List of useful functions to create and explore data structure
+
+-   Functions to create & explore data structure
+    -   `c()` - concatenate function
+    -   `:` - colon operator for sequence generation
+    -   `seq()` - sequence generation
+    -   `rep()` - replicate elements of vectors and lists
+    -   `View()` - invoke a data viewer
+    -   `length()` - length of an object
+    -   `class()` - object class
+    -   `head()` - return the first 6 rows of an object
+    -   `tail()` - return the last last 6 rows an object
+    -   `dim()` - returns the dimensions of an object
+    -   `nrow()` - number of rows
+    -   `ncol()` - number of columns
+    -   `str()` - display the structure of each column of an object
+    -   `names()` - display the names of an object, typically the column names
+    -   `nlevels()` - categorial levels within an object
+    -   `cbind()` - combine objects by columns
+    -   `rbind()` - combine objects by rows
+    -   `rm()` - remove an object
+    -   `edit()` - edit an object
+    -   `t()` - transpose a matrix or dataframe
+    -   `is.data.frame()` - check if you data is a data frame
+    -   `as.data.frame()` - coerce your data to a data frame
+    -   `is.matrix()` - check if your data is a matrix
+    -   `as.matrix()` - coerce your data to a matrix
+-   Basic mathematical functions for summary statistics
+    -   `sum()`
+    -   `mean()`
+    -   `min()`
+    -   `max()`
+    -   `sd()`
+    -   `median()`
+    -   `summary()`
+
+# 7. How can we repeat code? : Introduction to the 'for' loop
+
+#### A. Why use the `for()` loop?
+
+Imagine trying to do an iterative process over a large dataset -
+
+```{r}
+mat.new <- matrix(rnorm(100, 1:100), nrow = 10, ncol = 10, byrow = T)
+
+mat.new
+
+sum(mat.new[, 1]) # sum of all values in the column 1
+sum(mat.new[, 2])
+sum(mat.new[, 3])
+sum(mat.new[, 4])
+sum(mat.new[, 5])
+# and so forth - is this the most efficient way to do something? 
+```
+
+#### B. Let's write a `for()` loop
+
+-   The basic structure of a for loop is:
+
+for (variable in a collection of variables) {\
+expression(s)\
+}
+
+-   Important points to remember: You must always create an empty data type (e.g., vector) to store the output of your data. Any data generated within your loop will be not be saved, unless you use **variable assignment** within the loop.
+
+-   For example, if we wanted to add 5 to each element of the vector x, and store it in vector y, we could do it with a `for()` loop:
+
+```{r}
+x <- seq(from = 0, to = 18, length.out = 10) # create a sequence of numbers that starts at 0, ends at 18, and has a length of 10
+x
+y <- rep(NaN, length(x))  #setting up empty box
+y
+for (i in 1:length(x)) { 
+  y[i] <- x[i] + 5  
+}
+
+y
+```
+
+-   However, in R, we can do this much more efficiently using the \<- command (because x is vectorized), so you don't need a `for()` loop for everything!
+
+```{r}
+y <- x + 5
+y
+```
+
+\*'i' can be whatever you like, it just has to be consistent across the loop!
+
+```{r}
+x <- seq(from = 0, to = 18, length.out = 10)
+
+y <- rep(NaN, length(x) - 1) 
+ 
+for (puppies in 1:length(x) - 1) {
+  y[puppies] <- x[puppies] + x[puppies + 1] 
+}
+
+y
+```
+
+-   Example using a logical statement
+
+```{r}
+x <- 1:10 # create a sequence of numbers from 1 to 10
+
+emptydat <- rep(NA, length(x))
+
+for (i in 1:length(x)){
+   emptydat[i] <- ifelse(x[i] > 5, "yes", "no")
+}
+
+emptydat
+```
+
+#### D. Think, pair and share 1
+
+-   Write a `for()` loop that (1) iterates over the numbers 1 to 10, (2) calculates the cube of each number and (3) saves the output in a storage vector.
+
+```{r}
+x <- seq(from= 1, to=10, length.out=10)
+
+dat2 <- rep(NaN, length(x))
+
+for(i in 1:length(x)){
+  dat2[i] <- x[i]^3
+}
+
+
+#modify existing code 
+x <- seq(from = 1, to = 10) # create a sequence of numbers that starts at 1, ends at 10
+x
+y <- rep(NaN, length(x))  #setting up empty box
+y
+for (i in 1:length(x)) { 
+  y[i] <- x[i]^3  
+}
+y
+
+```
+
+#### E. Think, pair and share 2
+
+-   Write a `for()` loop that (1) iterates over the numbers 5 to 15, (2) adds each variable to the variable that succeeds it in vector x (e.g., 5 + 6; 6 + 7; etc.) and (3) saves the output in a storage vector.
+
+```{r}
+
+x <- seq(from = 5, to = 15)
+x
+y <- rep(NaN, length(x) - 1) 
+ 
+for (i in 1:length(x) - 1) {
+  y[i] <- x[i] + x[i + 1] 
+}
+
+y
+
+
+```
+
+------------------------------------------------------------------------
+
+Resources and examples for For Loop conceptualization:
+
+-   Data Carpentires walkthrough: <https://datacarpentry.github.io/semester-biology/materials/for-loops-R/>
+
+-   Cartoon: Monsters on parade (for loop with if else statement by Allison Horst): <https://x.com/allison_horst/status/1290774616038809600>
+
+# 8. More resources for more R fun
+
+-   Portions of this tutorial were adapted from the following resources (which you should most certainly check out!):
+
+    -   [Programming with R](https://swcarpentry.github.io/r-novice-inflammation/)
+
+    -   [Prelude to R](https://preludeinr.com/) by Florent Bled
+
+    -   [Introducing R](https://data.princeton.edu/R/readingdata) by Germán Rodríguez
+
+-   This is a great handy 'cheat sheet'. There are many more types of 'cheatsheets' that cover `base` R functions and other external packages [here](https://www.rstudio.com/resources/cheatsheets/).
+
+    -   [Base R Cheatsheet](https://www.rstudio.com/wp-content/uploads/2016/10/r-cheat-sheet-3.pdf) by Mhairi McNeill
+
+------------------------------------------------------------------------
