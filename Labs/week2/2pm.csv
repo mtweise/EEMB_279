@@ -1,0 +1,37 @@
+Timeseries,PreyType,Color,LightLevel,Treatment,Replicate,Day1,Day2,Day3,Day5,Day7,Day9,Day11,Day13,Day15,StudentName,r.est,K.est
+1,Hemiselmis pacifica,Bluegreen,10,Fed,A,803.23,958.33,1225.13,2212.5,2060,2430,3225,2775,2720,Caitlin NM,0.1760751,8.078688
+2,Hemiselmis pacifica,Bluegreen,10,Fed,B,,871.43,871.43,871.43,871.43,2340,2525,2675,2625,,,
+3,Hemiselmis pacifica,Bluegreen,10,Fed,C,758.33,800,1241.67,2225,1950,2130,2710,2510,2625,Wyatt Sanchez,0.1808712,7.904704
+4,Hemiselmis pacifica,Bluegreen,10,Starved,A,835.71,978.57,942.86,925.71,792.86,857.14,834.102,833.2991,,,,
+5,Hemiselmis pacifica,Bluegreen,10,Starved,B,642.86,871.43,1014.29,921.43,964.29,900,,,,Neha Rani,0.2280086,
+6,Hemiselmis pacifica,Bluegreen,10,Starved,C,735.71,864.29,1142.86,985.71,771.43,907.14,,,,,,
+7,Hemiselmis pacifica,Bluegreen,50,Fed,A,921.43,1214.29,1414.29,1608.33,1642.86,1750,1342.86,1408.33,1007.14,Vela Reynolds,0.2142281,7.467371
+8,Hemiselmis pacifica,Bluegreen,50,Fed,B,807.14,1250,1228.57,1608.33,1958.33,1542.86,1585.71,1235.71,1100,Conor Crowley,0.1304706,7.579847
+9,Hemiselmis pacifica,Bluegreen,50,Fed,C,757.14,1214.29,1250,1491.67,1900,1571.43,1064.29,1207.14,842.86,Lia Xerogeanes,0.09147336,7.549609
+10,Hemiselmis pacifica,Bluegreen,50,Starved,A,657.14,907.14,600,842.86,907.14,871.43,,,,Ella Peterson,0.05965568,6.810297
+11,Hemiselmis pacifica,Bluegreen,50,Starved,B,828.57,814.29,635.71,928.57,978.57,850,,,,Kylie,-0.1324794,6.886092
+12,Hemiselmis pacifica,Bluegreen,50,Starved,C,742.86,1100,478.57,950,864.29,942.86,,,,Heather Huff,0.05768753,0.6659548
+13,Hemiselmis pacifica,Bluegreen,100,Fed,A,671.43,1591.67,1970,2690,2350,2610,2310,1335.71,1528.57,,,
+14,Hemiselmis pacifica,Bluegreen,100,Fed,B,735.71,1225,1920,2620,2290,2541.67,2420,1728.57,1335.71,Mauricio PV,0.4796222,7.87093
+15,Hemiselmis pacifica,Bluegreen,100,Fed,C,678.57,1385.71,2070,2660,2590,2400,2225,1664.29,1400,Justin Kim,0.5576581,7.886081
+16,Hemiselmis pacifica,Bluegreen,100,Starved,A,707.14,992.86,1028.57,1114.29,928.57,1142.86,,,,Ryan Zimmerman,0.0353351,7.041289
+17,Hemiselmis pacifica,Bluegreen,100,Starved,B,721.43,1078.57,1228.57,1050,1192.86,1242.86,,,,Maddy Weise,0.2661854,7.12517
+18,Hemiselmis pacifica,Bluegreen,100,Starved,C,814.29,950,1300,821.43,1092.86,1107.14,,,,,,
+19,Rhodomonas salina,Red,10,Fed,A,721.43,1157.14,2350,3637.5,3800,3562.5,3950,3170,2950,Emma Skoglund,0.5904676,8.281471
+20,Rhodomonas salina,Red,10,Fed,B,928.57,1207.14,2341.67,4000,3670,3762.5,4012.5,3887.5,2425,,,
+21,Rhodomonas salina,Red,10,Fed,C,828.57,942.86,2475,3570,3860,4362.5,4125,4187.5,3037.5,Payton King,0.2764309,8.380801
+22,Rhodomonas salina,Red,10,Starved,A,685.71,850,921.43,800,983.33,828.57,1085.71,,,,,
+23,Rhodomonas salina,Red,10,Starved,B,621.43,792.86,1157.14,1000,1014.29,907.14,835.71,,,,,
+24,Rhodomonas salina,Red,10,Starved,C,692.86,721.43,1007.14,985.71,885.71,885.71,807.14,,,Lourdes Velazquez,0.3336346,6.91487
+25,Rhodomonas salina,Red,50,Fed,A,500,1214.29,1633.33,4600,4750,5312.5,4420,3890,3025,,,
+26,Rhodomonas salina,Red,50,Fed,B,828.57,1064.29,1816.67,4475,4480,4812.5,4412.5,3610,2425,,,
+27,Rhodomonas salina,Red,50,Fed,C,935.71,1050,2030,4250,3890,4300,3837.5,3712.5,2612.5,Adelaide Dahl,0.2593893,8.36637
+28,Rhodomonas salina,Red,50,Starved,A,728.57,600,1150,1592.86,1578.57,1535.71,1242.86,,,,,
+29,Rhodomonas salina,Red,50,Starved,B,807.14,907.14,964.29,1585.71,1500,1457.14,1400,,,,,
+30,Rhodomonas salina,Red,50,Starved,C,564.29,850,814.29,1350,1371.43,1178.57,1164.29,,,,,
+31,Rhodomonas salina,Red,100,Fed,A,731.25,987.5,1825,4975,8250,8783.33,7700,8250,6500,Steven Lwe,0.4264611,9.080611
+32,Rhodomonas salina,Red,100,Fed,B,750,975,1975,5812.5,8433.33,7440,7033.33,8216.67,6316.67,Tehya Boggs,0.4332061,9.039947
+33,Rhodomonas salina,Red,100,Fed,C,743.75,743.75,978.57,2791.67,7933.33,7562.5,7466.67,7616.67,5850,Siena W,0.4853303,8.978828
+34,Rhodomonas salina,Red,100,Starved,A,343.75,450,925,1068.75,1392.86,1471.43,1300,,,Matthew Rosen,0.2968815,7.29399
+35,Rhodomonas salina,Red,100,Starved,B,262.5,262.5,262.5,262.5,262.5,1528.57,1200,,,,,
+36,Rhodomonas salina,Red,100,Starved,C,262.5,262.5,262.5,262.5,262.5,1785.71,1357.14,,,,,
