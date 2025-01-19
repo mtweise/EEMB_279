@@ -663,7 +663,9 @@ Output a plot of your POPULATION SIZE DATA for "your" row of data, overlaid by y
 = /4 points total  
 
 ```{r}
-# your annotated code here
+
+
+
 ```
 
 # HW Question 2
