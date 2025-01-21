@@ -664,7 +664,33 @@ Output a plot of your POPULATION SIZE DATA for "your" row of data, overlaid by y
 
 ```{r}
 
+#is this simply asking for the same plot again??
 
+####################################################
+# 1. what are you plotting here? We are plotting our M.chameleon abundance observed over time
+####################################################
+plot(x = ExptDays, y = ln.MyDensities, #time along x axis and natural lof of abundance on the y axis
+     xlab='Experimental Timepoints', #x axis labels
+     ylab='M. chamaeleon abundance (cells/mL)', #y axis labels
+     las=1, #formatting assistance
+     ylim = c(0, 1.5 * max(ln.MyDensities,na.rm=TRUE))) #setting the y-axis limits
+
+
+####################################################
+# 1. what are you plotting here? We are pltting the lines of what our models (exponential and logistic) predict versus our actual data
+####################################################
+# what growth model is this? exponential model
+lines(x = exp.tmpts, y = exp.simu,col='blue') 
+# what growth model is this? logistic model
+lines(x = log.tmpts, y= log.simu,col='green') 
+##############
+
+# Add a legend
+legend('topright',                        # Position of the legend
+       legend = c('Exponential Model', 'Logistic Model'),  # Labels
+       col = c('blue', 'green'),         # Line colors
+       lty = 1,                          # Line type (solid line)
+       cex = 0.8)                        # Text size
 
 ```
 
@@ -681,9 +707,30 @@ Output two figures showing class GROWTH RATE estimates by **feeding treatment** 
 ```{r}
 # your annotated code for figure of Hemiselmis-fed cultures
 
+hempa_data <- ClassData[ClassData$PreyType == 'Hemiselmis pacifica',] #only want rows where it is exactly Hemiselmis pacifica
+
+bargraph.CI(data = hempa_data, #
+            x.factor = LightLevel, # column name of the x factor we are plotting
+            response = r.est, # y axis variable
+            main= "Hemiselmis pacifica", #adds figure title
+            group = c(Treatment), # group by column of treatment
+            xlab = 'Light Level', ylab = 'Estimated growth rate, r', #
+           legend = TRUE, x.leg = 1, # legend specs
+            bty = 'y', las = 1) # plot specification
+
 
 # your annotated code for figure of Rhodomonas-fed cultures
 
+rhosal_data <- ClassData[ClassData$PreyType == 'Rhodomonas salina',] #only want rows where it is exactly rhodomonas salina
+
+bargraph.CI(data = rhosal_data, #
+            x.factor = LightLevel, # column name of the x factor we are plotting
+            response = r.est, # y axis variable
+            main= 'Rhodomonas salina', #adds figure title
+            group = c(Treatment), # group by column of treatment
+            xlab = 'Light Level', ylab = 'Estimated growth rate, r', #
+           legend = TRUE, x.leg = 1, # legend specs
+            bty = 'y', las = 1) # plot specification
 
 ```
 
@@ -699,9 +746,19 @@ Output two figures showing class CARRYING CAPACITY estimates by feeding treatmen
 
 ```{r}
 # your annotated code for figure of Hemiselmis-fed cultures
-
+bargraph.CI(data = hempa_data, #
+            x.factor = LightLevel, # column name of the x factor we are plotting
+            response = K.est, # y axis variable
+            main= "Hemiselmis pacifica", #adds figure title
+            group = c(Treatment), # group by column of treatment
+            xlab = 'Light Level', ylab = 'Estimated carrying capacity, K', #
+           legend = TRUE, x.leg = 1, # legend specs
+            bty = 'y', las = 1) # plot specification
 
 # your annotated code for figure of Rhodomonas-fed cultures
+
+
+
 ```
 
 # HW Question 4
@@ -714,7 +771,7 @@ Which of your model runs 'fit' "your" empirical data best? Why? What discrepanci
   /1 point for adjustments to improve model fit  
  = /4 points 
  
-**Write answer in full sentences here: _________________**
+**Write answer in full sentences here: The logistic growth model fit the data the best. This was because it took into account the carrying capacity of the species. A discrepancy could be that it did not predict the population exceeding carrying capacity at all (which it briefly did). To improve the model fit, incorporating additional factors like environmental fluctuations or density-dependent feedback mechanisms could be beneficial.   **
  
 # HW Question 5
  
