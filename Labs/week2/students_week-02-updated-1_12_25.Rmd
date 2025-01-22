@@ -664,12 +664,10 @@ Output a plot of your POPULATION SIZE DATA for "your" row of data, overlaid by y
 
 ```{r}
 
-#is this simply asking for the same plot again??
-
 ####################################################
 # 1. what are you plotting here? We are plotting our M.chameleon abundance observed over time
 ####################################################
-plot(x = ExptDays, y = ln.MyDensities, #time along x axis and natural lof of abundance on the y axis
+plot(x = ExptDays, y = ln.MyDensities, #time along x axis and natural log of abundance on the y axis
      xlab='Experimental Timepoints', #x axis labels
      ylab='M. chamaeleon abundance (cells/mL)', #y axis labels
      las=1, #formatting assistance
@@ -709,12 +707,12 @@ Output two figures showing class GROWTH RATE estimates by **feeding treatment** 
 
 hempa_data <- ClassData[ClassData$PreyType == 'Hemiselmis pacifica',] #only want rows where it is exactly Hemiselmis pacifica
 
-bargraph.CI(data = hempa_data, #
+bargraph.CI(data = hempa_data, #building a bargraph with hempa data
             x.factor = LightLevel, # column name of the x factor we are plotting
             response = r.est, # y axis variable
             main= "Hemiselmis pacifica", #adds figure title
             group = c(Treatment), # group by column of treatment
-            xlab = 'Light Level', ylab = 'Estimated growth rate, r', #
+            xlab = 'Light Level', ylab = 'Estimated growth rate, r', #x and y axis labels
            legend = TRUE, x.leg = 1, # legend specs
             bty = 'y', las = 1) # plot specification
 
@@ -723,12 +721,12 @@ bargraph.CI(data = hempa_data, #
 
 rhosal_data <- ClassData[ClassData$PreyType == 'Rhodomonas salina',] #only want rows where it is exactly rhodomonas salina
 
-bargraph.CI(data = rhosal_data, #
+bargraph.CI(data = rhosal_data, # building a bargraph with rhosal data
             x.factor = LightLevel, # column name of the x factor we are plotting
             response = r.est, # y axis variable
             main= 'Rhodomonas salina', #adds figure title
             group = c(Treatment), # group by column of treatment
-            xlab = 'Light Level', ylab = 'Estimated growth rate, r', #
+            xlab = 'Light Level', ylab = 'Estimated growth rate, r', # x and y axis labels
            legend = TRUE, x.leg = 1, # legend specs
             bty = 'y', las = 1) # plot specification
 
@@ -746,17 +744,24 @@ Output two figures showing class CARRYING CAPACITY estimates by feeding treatmen
 
 ```{r}
 # your annotated code for figure of Hemiselmis-fed cultures
-bargraph.CI(data = hempa_data, #
+bargraph.CI(data = hempa_data, # bargraph using hempa data 
             x.factor = LightLevel, # column name of the x factor we are plotting
             response = K.est, # y axis variable
             main= "Hemiselmis pacifica", #adds figure title
             group = c(Treatment), # group by column of treatment
-            xlab = 'Light Level', ylab = 'Estimated carrying capacity, K', #
+            xlab = 'Light Level', ylab = 'Estimated carrying capacity, K', # x and y axis labels
            legend = TRUE, x.leg = 1, # legend specs
             bty = 'y', las = 1) # plot specification
 
 # your annotated code for figure of Rhodomonas-fed cultures
-
+bargraph.CI(data = rhosal_data, # bargraph using hempa data 
+            x.factor = LightLevel, # column name of the x factor we are plotting
+            response = K.est, # y axis variable
+            main= "Rhodomonas salina", #adds figure title
+            group = c(Treatment), # group by column of treatment
+            xlab = 'Light Level', ylab = 'Estimated carrying capacity, K', # x and y axis labels
+           legend = TRUE, x.leg = 1, # legend specs
+            bty = 'y', las = 1) # plot specification
 
 
 ```
@@ -781,7 +786,7 @@ Compare and contrast the growth rates and carrying capacities of M. chamaeleon i
  /2 points for explanations that integrate the biology or ecology of these organisms
  = /4 points
  
- **Write answer in full sentences here: _________________**
+ **Write answer in full sentences here: For Hemiselmis pacifica, the estimated growth rate is highest in the 100 light level category while fed.However, it is lowest in the starved and 50light level treatments. For estimated carrying capacity, it appeared that being fed (regardless of light treatments) was the primary indicator of carrying capacity. Alternatively, for Rhodomonas salina growth rate was fairly similar regardless of feeding treatment at the highest and lowest light levels. However, the 50 light level treatment and starved treatments led to significantly lower growth rates. For carrying capacity, we saw similar trends. A possible explanation for these observations is the differing ecological and physiological requirements of the two species. Hemiselmis pacifica may be more dependent on prey availability for growth, with light playing a secondary role, as it might prioritize heterotrophic feeding strategies. In contrast, Rhodomonas salina might rely more heavily on photosynthesis, particularly at high and low light levels, which could explain its resilience in those conditions. **
  
 
 Total is out of 28 points. 
