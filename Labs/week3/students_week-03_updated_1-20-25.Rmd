@@ -1,0 +1,1403 @@
+---
+title: 'Lab 3: Optimal Harvest'
+author: "Mads"
+date: "23 January 2025"
+output: 
+  html_document:
+    toc: true
+    toc_float: true  # Optional, makes the TOC float on the side
+---
+
+# Important Deadlines
+
+##### Important checkpoints
+    
+* **Week 4 (Wednesday, January 29 by 11:59 PM)**: Identify your partners for your final project.
+
+* **Week 5 (Tuesday, February 4 by 11:59 PM)**: Paper selection (first choice and alternate) on this google sheet (https://docs.google.com/spreadsheets/d/1vcWsQ1MsTFamkS7lli94J-wor0p8dbMePD17rWS304s/edit?gid=0#gid=0) -- make sure to navigate to your section's tab!  
+
+* **Week 5 (Thursday, February 6)**: IN LAB: Appointments with Dr. Moeller and Caitlin in lab about your paper choices. We expect you to -- (1) have read both papers, and (2) explain to us why you have chosen this paper (For example -- What interests you about it? What ecological concept(s) does this paper address? Which portion will you analytically develop during your presentation? What time series simulation will you code up (and vary a parameter for) in your written report?). Refer to the Project guidelines on Canvas for more details!  
+
+Don't have a group yet? Talk to each other today AND put yourself in the "Group Selection List" on the google sheet below (use the tab for your section!)
+
+# Bifurcation diagram
+
+Remember that this is a figure where the stable equilibrium population size (N*) is plotted as a function of some parameter. In this case, let's make a bifurcation diagram for the logistic growth model of population growth, with stable equilibrium population size as a function of carrying capacity K.
+
+To do this in R, you'll have to make a nested for() loop. You'll basically tell R:  
+1. Create a vector of different values for your parameter (x-axis of the bifurcation diagram)  
+2. Calculate the N* for each parameter - do this by calculating population size, then pull out the last value of N (ASSUMPTION: N will reach equilibrium at the end of the simulation)  
+3. Store the N* (y-axis of the bifurcation diagram)  
+
+Here's an example of how that works. Let's make a bifurcation diagram of N* as a function of K for the logistic growth model.
+```{r}
+######################################################
+# 0. some set up of variables
+######################################################
+r <- 0.5
+
+######################################################
+# 1. create a vector of different values for K
+######################################################
+Kset <- seq(from = 1, to = 100, by = 1)
+
+
+######################################################
+# 2. calculate N* for each parameter value
+######################################################
+## 2a. create a holding vector for N*
+Nstarset <- rep(NaN, times = length(Kset))
+
+## 2b. create a sequence of timepoints at which to calculate population size (in the inner for() loop)
+timepoints <- seq(from = 1, to = 25, length = 1000)
+
+## 2b. write a for() loop 
+### nested for() loop structure:
+#### outer loop: choose a value of K from Kset
+##### inner loop: calculate population size at every time step
+#### outer loop: pull out the last population size (N*) and store it in Nstarset
+
+# this is the start of the outer loop!
+# for each element j from the first to last in Kset
+for(j in 1:length(Kset)) {
+  
+  # assign K the value from Kset for this iteration
+  K <- Kset[j]
+  
+  # create a holding vector for the inner loop for population sizes
+  N.simu <- rep(NaN, times = length(timepoints)) 
+  # set your initial condition
+  N.simu[1] <- 10
+  
+  # inner loop: calculate population size (N)
+  # for each element i from the second to the last in timepoints
+  for(i in 2:length(timepoints)){ 
+    # store previous population size as N
+    N <- N.simu[i-1]
+    
+    # calculate change in time
+    deltat <- timepoints[i] - timepoints[i-1] 
+
+    # calculating the change in population size
+    deltaN <- N * r * (1 - N / K) * deltat 
+    
+    # calculating total population size
+    N.simu[i] = N + deltaN
+  }
+  
+  ######################################################
+  # 3. store the N* (back in the outer loop)
+  ######################################################
+  # pull out the last value from N.simu and put it in Nstarset
+  Nstarset[j] <- N.simu[length(timepoints)] 
+  
+}
+```
+
+```{r}
+plot(x = Kset, y = Nstarset, 
+     type='l', 
+     lwd=2, 
+     xlab = "Carrying Capacity, K", 
+     ylab = "Stable Equilibria of Popn Size, N*")
+```
+
+# 1. Modeling a logistically growing population
+
+Before starting in on optimal harvest, let's review how to model a logistically growing population. We learned how to do this in last week's lab when we measured bacterial growth.  
+
+## a. Modelling using a given set of parameters
+
+First, we can assign parameters. Let's say that for this population, $r = 0.5$ and $K = 100$.
+```{r}
+r <- 0.5 # growth rate
+K <- 100 # carrying capacity
+```
+
+Then, we can simulate that population's growth over time using a `for()` loop. Recall that $\frac{dN}{dt} = rN(1-\frac{N}{K})$. What are the 3 components necessary for a successful `for()` loop?
+```{r}
+#################################
+# 1. designate a data vector
+#################################
+tset <- seq(from = 0, to = 100, length.out = 20000) # create a sequence of numbers from 0 to 100 that is 20000 values long
+
+
+#################################
+# 2. create a holding vector
+#################################
+N.simu <- NaN * tset # create a vector of NaNs that is the same length as tset
+N0 <- 2 # assign 2 to N0
+N.simu[1] <- N0 # fill in initial conditions
+
+#################################
+# 3. the for() loop
+#################################
+# for each element i from the second to the last element in tset
+for(i in 2:length(tset)){ 
+  # calculate change in time: this timestep - previous timestep
+  dt <- tset[i] - tset[i-1] 
+  
+  # calculate change in population size
+  dNdt <- (r * N.simu[i-1] * (1-N.simu[i-1]/K)) * dt 
+  
+  # calculate total population size and put into holding vector
+  N.simu[i] <- N.simu[i-1] + dNdt 
+}
+```
+
+Check the output of your `for()` loop in the console to make sure it looks like what you would expect. Now we can plot. What do each of the arguments mean?
+```{r}
+plot(x = tset, y = N.simu, # x and y axes
+     type = 'l', # linear line
+     ylim = c(0, 1.1*K), # limit on y-axis
+     las = 1, # horizontal axis labels
+     lwd = 2, # line width
+     xlab = 'Time', # x-axis label
+     ylab = 'Population Size') # y-axis label
+```
+
+## b. Changing initial population size
+
+What if we change the initial population size? We can run additional simulations where $N_0 = 50, 100, 150$ and overlay them on your timeseries plot.
+```{r}
+#################################
+# 1. designate your data
+#################################
+# this has already been done; we're using tset
+
+
+#################################
+# 2. create a holding vector
+#################################
+# N0 = 50
+N0.50 <- 50
+N.simu.50 <- NaN*tset
+N.simu.50[1] <- N0.50
+
+# N0 = 100
+N0.100 <- 100
+N.simu.100 <- NaN*tset
+N.simu.100[1] <- N0.100
+
+# N0 = 150
+N0.150 <- 150
+N.simu.150 <- NaN*tset
+N.simu.150[1] <- N0.150
+
+# Tip: You can run these calculations simultaneously within your for loop, but be very careful to keep track of which variable is which!
+
+
+#################################
+# 3. the for() loop
+#################################
+# for each element i from the second to the last element in tset
+for(i in 2:length(tset)){
+  # calculate change in time
+  dt <- tset[i] - tset[i-1]
+  
+  # calculate change in population size and total population size if N0 = 50
+  dNdt.50 <- (r*N.simu.50[i-1]*(1-N.simu.50[i-1]/K))*dt
+  N.simu.50[i] <- N.simu.50[i-1] + dNdt.50
+  
+  # calculate change in population size and total population size if N0 = 100
+  dNdt.100 <- (r*N.simu.100[i-1]*(1-N.simu.100[i-1]/K))*dt
+  N.simu.100[i] <- N.simu.100[i-1] + dNdt.100
+  
+  # calculate change in population size and total population size if N0 = 150
+  dNdt.150 <- (r*N.simu.150[i-1]*(1-N.simu.150[i-1]/K))*dt
+  N.simu.150[i] <- N.simu.150[i-1] + dNdt.150
+}
+```
+
+To overlay these on our original plot, we can use sequential 'line' commands. As in the last lab, the `col` argument chooses a colour for each line. For a list of some colour selections available in R, consult the [list](http://www.stat.columbia.edu/~tzheng/files/Rcolor.pdf). The `rgb()` function is also capable of specifying colours from three RGB arguments (and can also take a fourth input parameter specifying transparency), when you want to get really fancy.  
+
+**Note:** When running this in R Markdown, unfortunately the chunk has to be run all at once (using the 'play' button, or by highlighting and executing simultaneously). Otherwise, the program "forgets" which plot it's on and gives an error when you try to add a line.
+```{r}
+###########################################
+# 1. plot the simulated population sizes
+###########################################
+plot(x = tset, y = N.simu, 
+     type = 'l', 
+     ylim = c(0, 1.6*K), 
+     las = 1, 
+     lwd = 2, 
+     xlab = 'Time',
+     ylab = 'Population Size')
+# what happens if we don't change the limits on the y-axis?
+
+######################################################
+# 2. plot the lines for different initial conditions
+######################################################
+# N0 = 50
+lines(tset, N.simu.50, 
+      col = 'paleturquoise3',
+      lwd = 2)
+# N0 = 100
+lines(tset, N.simu.100,
+      col = 'peachpuff3',
+      lwd = 2)
+# N0 = 150
+lines(tset, N.simu.150, 
+      col = 'coral2',
+      lwd = 2)
+
+######################
+# 3. add a legend
+######################
+# this makes it easier to keep track of each line!
+legend(x = max(tset)*.6, y = 1.6*K, 
+       lwd = 2, 
+       legend = c('N0=2','N0=50','N0=100','N0=150'), 
+       col = c('black','paleturquoise3','peachpuff3','coral2'), 
+       horiz = FALSE)
+
+# what do each of these arguments mean?
+```
+
+## c. dN/dt as a function of N
+
+We can also plot $\frac{dN}{dt}$ as a function of N, akin to the plots you've been seeing in lecture that examine how a population's growth depends on its current size. First, let's generate a range of Ns for which we'd like to know the change in population size. A reasonable range would be from 0 to K, but let's go a bit past K so that we can see where $\frac{dN}{dt}$ becomes negative.
+```{r}
+Nset <- seq(from = 0, to = K*1.1, length.out = 200)
+```
+
+We could calculate $\frac{dN}{dt}$ using a `for()` loop, but it's more efficient to use a **vector operation**. The reason this works is that each entry of our $\frac{dN}{dt}$ storage variable depends only on N, not on an adjacent value of $\frac{dN}{dt}$. We need to use a `for()` loop for our temporal simulations because each value depends on the previous $t-1$ value of the population size.
+```{r}
+dNdt.log <- r * Nset * (1-Nset/K)
+```
+
+We can plot $\frac{dN}{dt}$ vs $N$ and check to see if this makes sense.
+```{r}
+############################################
+# 1. plot dN/dt as a function of Nset
+############################################
+plot(x = Nset, y = dNdt.log, 
+     type = 'l', 
+     las = 1, 
+     lwd = 2, 
+     xlab = 'N', ylab = 'dN/dt')
+
+
+############################################
+# 2. add a line along the x-axis
+############################################
+abline(h = 0,lwd = 1)
+
+############################################
+# 3. mark the equilibria where dN/dt = 0
+############################################
+# We'll use filled points to indicate stable equilibria, and open points to indicate unstable ones
+# this is our unstable equilibrium
+points(x = 0, y = 0, 
+       pch = 21, # 'pch' specifies the point shape
+       cex = 1.5) # cex is a multiplier that specifies the point size
+# this is our stable equilibrium
+points (x = K, y = 0, 
+        pch = 21, 
+        cex = 1.5, 
+        bg = 'black') # 'bg' specifies the fill colour of the point
+
+############################################
+# 4. add a legend
+############################################
+legend(x = 0, y = -1, 
+       legend = c('dN/dt', 'unstable equil.', 'stable equil.'), 
+       lwd = c(2, NaN, NaN), 
+       pch = c(NaN, 21, 21), 
+       pt.cex = 1.5, 
+       pt.bg = c('white', 'white', 'black'))
+```
+
+# 2. Modeling harvest of a logistically growing population
+
+## a. Population change as a function of population size
+
+Let's employ the coding tools that we've learned (simulating and differentiating between population dynamics; finding and labeling equilibria) to consider what would happen if we harvested this population. Our model is
+$\frac{dN}{dt} = rN(1-\frac{N}{K})-qEN$
+where $q$ is the catchability coefficient and $E$ is the fishing effort. We'll use the same values of r and K as before ($r = 0.5$ and $K = 100$) and set $q = 0.1$ and $E = 1$.
+```{r}
+q <- 0.1 #
+E <- 1 #
+```
+
+Also, just to make sure we're understanding this correctly, we're going to make a new vector for population growth under a logistic growth model. It's going to be the exact same as `dNdt.log`, but we'll rename this so that it's less confusing down the line.
+```{r}
+growth.log <- dNdt.log
+```
+
+
+First, plot the rate of population change as a function of population size. **Note:** we must be careful of our y-axis labels now because $\frac{dN}{dt}$ has two components: 1. the biology of logistic growth, and 2. the economics of harvest.
+```{r}
+############################################
+# 1. plot the biology of logistic growth
+############################################
+# plot the biology in black
+plot(x = Nset, y = growth.log, 
+     type = 'l', 
+     las = 1, 
+     lwd = 2, 
+     xlab = 'N', ylab = 'Population Change')
+
+# plot the x-axis so that it's easier to see the intercept
+abline(h = 0, lwd = 1)
+
+############################################
+# 2. plot the economics of harvest
+############################################
+# plot the economics in blue
+lines(x = Nset, y = (q*E*Nset), col = 'royalblue2', lwd = 2)
+
+############################################
+# 3. create a legend
+############################################
+legend(x = 0, y = -1, 
+       lwd = c(2, 2), 
+       legend = c('growth', 'harvest'), 
+       col = c('black', 'royalblue2'))
+```
+
+We'd now like to find the equilibria (the intersections of the black and blue lines). One (unstable) is at $N = 0$. The other is somewhere between 0 and K. There are two ways to find this equilibrium:  
+1. **Algebraically**, by solving $\frac{dN}{dt} = 0$  
+2. **By simulation**, by using a `for()` loop  
+
+We can start with the algebraic solution.
+```{r}
+Nstar <- K*(1-q*E/r)  # Check this with pen (or pencil) and paper!
+```
+
+Now, we can try the simulation. What 3 components do you need for a successful `for()` loop?
+```{r}
+#################################
+# 1. designate the data vector
+#################################
+tset <- seq(from = 0, to = 100, length.out = 20000) 
+
+#################################
+# 2. create a holding vector
+#################################
+N.simu.E1 <- NaN*tset #
+N.simu.E1[1] <- N0 #
+
+#################################
+# 3. the for() loop
+#################################
+for(i in 2:length(tset)){ #iterare over the length of my test, note i habe an ititial condition in there 
+  dt <- tset[i] - tset[i-1] #change in time for this timestep
+  dNdt.E1 <- (r*N.simu.E1[i-1]*(1-N.simu.E1[i-1]/K)-q*E*N.simu.E1[i-1])*dt #change in population in this timestep according to the logistic growth and harvest equation
+  N.simu.E1[i] <- N.simu.E1[i-1] + dNdt.E1 #get my current population by adding previous population plus the new change in this timestep
+}
+```
+
+After checking the output of your `for()` loop, you can plot it.
+```{r}
+plot(x = tset, y = N.simu.E1, 
+     type = 'l', 
+     lwd = 2, 
+     xlab = 'Time', ylab = 'Population Size')
+```
+
+## b. Yield as a function of time
+
+Recall that $Y = qEN$.
+```{r}
+############################################
+# 1. plot logistic growth in black
+############################################
+plot(x = tset, y = N.simu.E1, 
+     type = 'l', lwd = 2, 
+     xlab = 'Time', ylab = 'Population Size')
+
+############################################
+# 2. plot yield in blue
+############################################
+lines(x = tset, y = N.simu.E1*E*q, 
+      type = 'l', 
+      lwd=2, 
+      col='royalblue2')
+
+############################################
+# 3. add a legend
+############################################
+legend(x = max(tset)*.6, y = max(N.simu.E1)*.5, 
+       lwd = c(2, 2), 
+       legend = c('Population', 'Yield'), 
+       col = c('black', 'royalblue2'))
+```
+
+## c. Comparing solutions
+
+We can compare our algebraic solution with our simulation solution.
+```{r}
+Nstar # our algebraic solution
+N.simu.E1[length(tset)] # the end population size of our simulation
+```
+
+## d. Equilibrium yield
+
+Now that we have confidence in our equilibrium population size, we can calculate the equilibrium yield.
+```{r}
+Ystar <- q*E*Nstar
+Ystar
+```
+
+As a final check, we can add this point to our plot and make sure it falls on the intersection of the blue and black lines.
+```{r}
+################################################
+# 1. plot population growth as a function of N
+################################################
+plot(x = Nset, y = growth.log, 
+     type = 'l', 
+     las = 1, 
+     lwd = 2, 
+     xlab = 'N', ylab = 'Population Change')
+
+# add a line at the x-axis
+abline(h = 0, lwd = 1)
+
+################################################
+# 2. plot the economics of harvest
+################################################
+lines(x = Nset, y = q*E*Nset, 
+      col = 'royalblue2', 
+      lwd = 2)
+
+################################################
+# 3. add equilibria
+################################################
+# unstable
+points(x = 0, y = 0, 
+       pch = 21, cex = 1.5)
+# stable
+points(y = Ystar, x = Nstar, 
+       pch = 21, cex = 1.5, 
+       bg = 'black')
+
+################################################
+# 4. add a legend
+################################################
+legend(x = 0, y = -0.5, 
+       legend = c('growth', 'harvest', 'unstable equil.', 'stable equil.'), 
+       lwd = c(2, 2, NaN, NaN), 
+       pch = c(NaN, NaN, 21, 21), 
+       pt.cex = 1.5, 
+       pt.bg = c('white', 'white', 'white', 'black'), 
+       col = c('black', 'royalblue2', 'black', 'black'),
+       ncol = 2)
+```
+
+# 3. Examining how effort changes yield
+
+We now know that for a fishing effort E = 1, we are catching 8 fish (yield) at equilibrium. But could we do better? Let's alter E and see how it affects yield. We'll plot lines for a few different values of E.  
+
+```{r}
+################################################
+# 1. plot population growth as a function of N
+################################################
+plot(x = Nset, y = growth.log, 
+     type = 'l', 
+     las = 1, 
+     lwd = 2, 
+     xlab = 'N', ylab = 'Population Change')
+abline(h = 0, lwd = 1)
+
+# Overlay Yield given a fishing Effort = 1
+lines(x = Nset, y = q*E*Nset, 
+      col= 'royalblue2',
+      lwd = 2)
+
+############################
+# 2. Set effort to 2
+############################
+# Set Effort to 2 and name this value E.2 with variable assignment 
+E.2 <- 2
+
+# Overlay Yield given a fishing Effort = 2
+lines(x = Nset, y = q*E.2*Nset, 
+      col= 'royalblue2',
+      lwd = 2,
+      lty = 2) #lty changes the line type. 2 = dashed 
+
+############################
+# 3. Set effort to 3
+############################
+# Set Effort to 3 and name this value E.3 with variable assignment 
+E.3 <- 3
+
+# Overlay Yield given a fishing Effort = 3, fill in the blank y argument
+lines(x = Nset, y = q*E.3*Nset, 
+      col = 'royalblue2',
+      lwd = 2,
+      lty = 3) 
+
+############################
+# 4. Set effort to 4
+############################
+# Set Effort to 4 and name this value E.4 with variable assignment 
+E.4 <- 4
+
+# Overlay Yield given a fishing Effort = 4, fill in the blank y argument
+lines(x = Nset, y = q*E.4*Nset, 
+      col= 'royalblue2', 
+      lwd = 2,
+      lty = 4) 
+
+```
+
+What have you observed about increasing E? What would happen if you decreased E below 1?
+
+## Think Pair Share 1: Yield as a function of effort
+
+Create a graph of yield (on the y-axis) as a function of effort (on the x-axis). First, choose a range of E values using the `seq()` function. A natural choice for lower bound is 0, but what about the upper bound? You can use your explorations above for inspiration. Also think about what we learned in class about $E = \frac{r}{q}$.
+```{r}
+# fill in the blank for the upper bound (right now r/q=5)
+Eset <- seq(from = 0, to = 1.1*(r/q), length.out = 200)
+```
+
+Then, find the associated equilibrium population size and name this variable `Nstar.set` with variable assignment. Recall that $N^* = K(1-\frac{qE}{r})$. Remember your variable assignments as you substitute in variables. 
+```{r}
+Nstar.set <- K*(1-(q*Eset)/r)
+
+```
+
+Next, calculate the corresponding yields and name this variable `Yield.set` with variable assignment. Recall that $Y = qEN^*$.
+```{r}
+Yield.set <- q*Eset*Nstar.set
+```
+
+Finally, plot yields as a function of effort.
+```{r}
+plot(x = Eset, y = Yield.set, 
+     type = 'l', 
+     lwd = 2, 
+     xlab = 'Effort', ylab = 'Yield')
+abline(h = 0)
+```
+
+
+# 4. Calculating Maximum Sustainable Yield (MSY)
+
+As managers of this population, we might like to achieve **maximum sustainable yield**. We can see from our previous graph that there is a maximum, and we can estimate from this graph the effort level where it might fall. But let's be a bit more precise. There are three ways we could calculate MSY:  
+
+1. use the calculus/algebra approach we learned in lecture,  
+2. estimate it from our graph, or  
+3. guess and check.  
+
+The third option would be quite time-consuming (even if we wrote an algorithm to do it for us), so we'll focus on the first two options.
+
+## a. Calculus-based approach
+
+On pen and paper, prove that $N_{MSY} = \frac{K}{2}$, $E_{MSY} = \frac{r}{2q}$, and $Y_{MSY} = \frac{rK}{4}$. Calculate their exact values for our set of parameters below.
+```{r}
+N_MSY <- K/2
+E_MSY <- r/q/2
+Y_MSY <- r*K/4
+
+
+N_MSY 
+E_MSY 
+Y_MSY 
+```
+
+## b. Estimate from graph
+
+First, find the effort value that produced the maximum yield. We can do this using a `for()` loop with a different application than what we usually use them for. Here, we'll estimate E and assign this value to the variable `E_MSY_est`.
+```{r}
+for(i in 1:length(Eset)){ #go through the length of my E.set 
+  if(Yield.set[i]==max(Yield.set)){ #if the value for yield is at the maximum
+    E_MSY_est <- Eset[i] #store the corresponding effort value as my estimate
+  }
+}
+
+```
+
+Calculate an estimate for $N_{MSY}$ called `N_MSY_est` given your previous estimate for $E_{MSY}$. Recall the algebraic solution for $N^*$ when $\frac{dN}{dt} = 0$ (at equilibrium) as $N^* = K(1-\frac{qE}{r})$.
+```{r}
+N_MSY_est <- K*(1-((q*E_MSY_est)/r))
+```
+
+Then, calculate an estimate for $Y_{MSY}$ and call it `Y_MSY_est`. Use the `max()` function to calculate the maximum yield value over your range of effort values. 
+```{r}
+Y_MSY_est <- max(Yield.set)
+```
+
+Now, you can compare the values from the two approaches:
+```{r}
+#  Compare:
+N_MSY # algebraic
+N_MSY_est # estimate
+
+E_MSY # algebraic
+E_MSY_est # estimate
+
+Y_MSY # algebraic
+Y_MSY_est # estimate
+```
+
+How close were your two results? How might changing the length of the Eset vector alter the accuracy of your numerical (R-based) estimation?
+
+# 5. Harvesting a stock with overcompensating recruitment
+
+Not all populations follow the logistic equation (for a number of reasons). One commonly reported difference for fisheries is that populations may "overcompensate." What this means is that when the population is small, it may grow faster than you would expect based on strict logistic growth. Biologically, this could result from a population with a high per-capita fecundity, such that very few adults could produce a very large number of offspring in the next timestep. A convenient way to mimic this phenomenon with a mathematical model is to use the formulation:
+
+$\frac{dN}{dt} = rN(1-\frac{N}{K})(2-\frac{N}{K})$  
+
+The additional multiplier term has the effect of increasing the growth rate when the population is small (N << K). This is easiest to see visually.  
+
+First, we'll calculate $\frac{dN}{dt}$ for an overcompensating population.
+```{r}
+dNdt.over <- r*Nset*(1-Nset/K)*(2-Nset/K)
+```
+
+Then, we'll plot it.
+
+```{r}
+###################################################
+# 1. plot dN/dt as a function of population size
+###################################################
+plot(x = Nset, y = dNdt.over, 
+     type = 'l', 
+     lwd = 2, 
+     las = 1, 
+     xlab = 'N', ylab = 'dN/dt')
+
+# add a line at the x-axis
+abline(h = 0)
+
+###################################################
+# 2. plot the logistic function for comparison
+###################################################
+lines(x = Nset, y = dNdt.log, 
+      lwd = 2, 
+      lty = 3)
+
+###################################################
+# 3. add a legend
+###################################################
+legend(x = 73, y = 20, 
+       legend = c("overcompensating", "logistic"), 
+       lwd = c(2, 2), 
+       lty = c(1, 2))
+```
+
+## a. Comparing logistic and overcompensating growth
+
+We can also compare how two populations, which start at the same population size, would grow differently over time depending on which function applied to them. We'll use a `for()` loop to calculate population size over time for an overcompensating population.
+```{r}
+#################################
+# 1. designate a data vector
+#################################
+# this has already been done; we'll use tset from before
+
+
+#################################
+# 2. holding vector
+#################################
+N.over <- NaN*tset
+N.over[1] <- N0
+
+
+#################################
+# 3. the for() loop
+#################################
+for(i in 2:length(tset)){
+  dt <- tset[i] - tset[i-1]
+  dNdt <- (r*N.over[i-1]*(1-N.over[i-1]/K)*(2-N.over[i-1]/K))*dt
+  N.over[i] <- N.over[i-1] + dNdt
+}
+```
+
+After checking the output of your `for()` loop. you can plot it.
+```{r}
+#############################################
+# 1. plot the overcompensating population 
+#############################################
+plot(x = tset, y = N.over, 
+     type = 'l', 
+     las = 1, 
+     lwd = 2, 
+     xlab = 'Time', ylab = 'Population Size')
+
+#############################################
+# 2. plot the logistic to compare
+#############################################
+lines(x = tset, y = N.simu, lwd = 2, lty = 3)
+
+#############################################
+# 3. legend
+#############################################
+legend(x = max(tset)*.6, y = K*.5, 
+       legend = c('Overcomp.','Logistic'), 
+       lwd = 2, 
+       lty = c(1,3))
+```
+Do the equilibria differ? What about the time to get to the equilibrium value? Why do you think this is the case?
+
+## Think Pair Share 2: N_MSY, E_MSY, and Y_MSY
+
+What are $N_{MSY}$, $E_{MSY}$, and $Y_{MSY}$ for this overcompensating population?  
+
+First, determine the maximum yield using the `max()` function. (**Hint:** where would yield be highest, if you are looking at the plot of $\frac{dN}{dt}$ as a function of $N$?) Use variable assignment to name this `Y_MSY.over`.
+```{r}
+Y_MSY.over <- max(dNdt.over) #keep an eye out for Caitlan's explanation as to why this works
+```
+
+Then, find the population size at which this maximum yield occurs.
+```{r}
+# annotate the for() loop
+for(i in 1:length(Nset)){ #look over the Nset
+  if(dNdt.over[i] == Y_MSY.over){ # when the dndt.over is equal to Ymsy.over then we have found the max
+    N_MSY.over <- Nset[i] #store that value and store as teh N_msy over 
+  }
+}
+
+N_MSY.over
+```
+
+Lastly, calculate effort given your values for `Y_MSY.over` and `N_MSY.over`. Recall that $Y = qEN$. Name this value `E_MSY.over`.
+```{r}
+E_MSY.over <- Y_MSY.over/(q*N_MSY.over)
+E_MSY.over
+
+```
+
+Now that you're done, check your results by making a graph of population change due to biology (in black) and economics (in blue) as a function of population size.  
+
+As we did before, we'll create a new vector for `growth.over` to indicate population growth in an overcompensating population. It'll be the same as `dNdt.over`, just renamed so that we can keep things straight with the axes.
+```{r}
+growth.over <- dNdt.over
+```
+
+
+Fill in the axis blanks.
+```{r}
+###################################
+# 1. biology
+###################################
+plot(x = Nset, y = growth.over, 
+     type = 'l', 
+     lwd = 2, 
+     las = 1, 
+     xlab = 'N', ylab = 'Change in Population')
+# add a line at the x-axis
+abline(h = 0)
+
+###################################
+# 2. economics
+###################################
+lines(x = Nset, y = q*E_MSY.over*Nset, #Y=qEN 
+      lwd = 2,
+      col = 'royalblue2')
+
+###################################
+# 3. equilibria
+###################################
+# unstable
+points(x = 0, y = 0, 
+       pch = 21, cex = 1.5)
+# stable
+points(x = N_MSY.over, y = Y_MSY.over,
+       pch = 21, cex = 1.5, 
+       bg = 'black')
+
+###################################
+# 4. legend
+###################################
+legend(x = 80, y = Y_MSY.over, 
+       legend = c('growth', 'harvest', 'unstable equil.', 'stable equil.'), 
+       lwd = c(2, 2, NaN, NaN), 
+       pch = c(NaN, NaN, 21, 21), 
+       pt.cex = 1.5, 
+       cex = 0.8,
+       pt.bg = c('white', 'white', 'white', 'black'), 
+       col = c('black', 'royalblue2', 'black', 'black'))
+```
+
+Use a simulation with a `for()` loop to make sure that your equilibrium point is accurate. Is it stable?
+```{r}
+###################################################
+# 1. create a set of time points to iterate over
+###################################################
+# use tset
+
+#############################################################
+# 2. create a storage vector and fill in initial conditions
+#############################################################
+N.simu.over <- NaN*tset
+N.simu.over[1] <- N0
+
+
+#############################################################
+# 3. for() loop: calculate population size change over time
+#############################################################
+# annotate each line of code
+for(i in 2:length(tset)){
+  dt <- tset[i] - tset[i - 1] #
+  dNdt.over <- (r*N.simu.over[i-1]*(1-N.simu.over[i-1]/K)*(2-N.simu.over[i-1]/K)-q*E_MSY.over*N.simu.over[i-1])*dt #
+  N.simu.over[i] <- N.simu.over[i-1] + dNdt.over #
+}
+```
+
+After checking the output of your `for()` loop, plot it.
+```{r}
+plot(x = tset, y = N.simu.over, 
+     type = 'l', 
+     lwd = 2, 
+     xlab = 'Time', ylab = 'Population Size')
+```
+
+Compare the outputs of each method. Are they similar?
+```{r}
+#compare
+N.simu.over[length(tset)]#i want the last value
+N_MSY.over
+#both methods worked under this over compensating population
+```
+
+
+# 6. Harvesting a stock with depensating recruitment ('Allee Effects')
+
+In some populations, we observe something called 'depensation,' which is the opposite of overcompensation. In such stocks, at low population sizes the population growth rate is slowed. Such phenomena were first described by Warder Allee; hence they are sometimes called 'Allee Effects.' Allee effects may be strong or weak: If an Allee effect is strong, then a population has a threshold size below which it will go extinct. (A good example of this would be for sexual reproducers: unless there are individuals of both sexes, the population will die out.) Weak Allee effects occur when growth rates are still positive, but they are lower than would be expected in a logistically growing population.  
+
+We can represent this mathematically by modifying the logistic equation:
+
+$\frac{dN}{dt} = rN(1-\frac{N}{K})(\frac{N}{A})$
+
+The third term reduces the growth rate whenever $N < A$, but increases growth rate when $N > A$. A is the 'Allee' parameter, the threshold population size at which the population's growth rate starts to be reduced because the population is too small.  
+
+Let's set $A = \frac{K}{2}$.
+```{r}
+A <- K/2
+```
+
+As above, it's useful to plot $\frac{dN}{dt}$ as a function of population size and compare between logistic and depensating populations.  
+
+First, we'll calculate $\frac{dN}{dt}$ for the depensating population.
+```{r}
+dNdt.dep <- r*Nset*(1-Nset/K)*(Nset/A)
+```
+
+Then, we can plot it.
+
+```{r}
+######################################
+# 1. plot dN/dt as a function of N
+######################################
+plot(x = Nset, y = dNdt.dep, 
+     type = 'l', 
+     lwd = 2, 
+     las = 1, 
+     xlab = 'N', ylab ='dN/dt')
+abline(h = 0)
+
+################################################
+# 2. plot our logistic function for comparison
+################################################
+lines(x = Nset, y = dNdt.log, 
+      lwd = 2, 
+      lty = 3)
+legend(x = 0, y= -1, 
+       lwd = 2, 
+       legend = c('Depensating','Logistic'), 
+       lty = c(1, 3))
+```
+
+We can also compare how two populations, which start at the same population size, would grow differently over time depending on which function applied to them. As above, we can do this using a `for()` loop.
+```{r}
+###############################
+# 1. designate a data vector
+###############################
+# this has already been done; we'll use tset
+
+###############################
+# 2. create a holding vector
+###############################
+N.dep <- NaN*tset
+# set initial conditions
+N.dep[1] <- N0
+
+###############################
+#. 3. the for() loop
+###############################
+for(i in 2:length(tset)){
+  dt <- tset[i]-tset[i-1]
+  dNdt <- (r*N.dep[i-1]*(1-N.dep[i-1]/K)*(N.dep[i-1]/A))*dt
+  N.dep[i] <- N.dep[i-1]+dNdt
+}
+```
+
+After checking the output of the `for()` loop, plot it.
+```{r}
+###################################################################
+# 1. plot N of the depensating population as a function of time
+###################################################################
+plot(x = tset, y = N.dep, 
+     type = 'l', 
+     las = 1, 
+     lwd = 2, 
+     ylim = c(0, 120),
+     xlab = 'Time', ylab = 'Population Size')
+
+##################################################
+# 2. plot the logistic function for comparison
+##################################################
+lines(x = tset, y = N.simu, 
+      lwd = 2, 
+      lty = 3)
+
+######################
+# 3. add a legend
+######################
+legend(x = max(tset)*.6, y = K*.5, 
+       lwd = 2, 
+       legend = c('Depensating', 'Logistic'), 
+       lty = c(1, 3))
+```
+Do the equilibria differ? What about the time to get to the equilibrium value? Why do you think this is the case?
+
+## Think Pair Share 3: N_MSY, E_MSY, and Y_MSY
+
+What are $N_{MSY}$, $E_{MSY}$, and $Y_{MSY}$ for this depensating population?
+
+First, determine the maximum yield using the `max()` function. Assign this variable to an object called `Y_MSY.dep`.
+```{r}
+Y_MSY.dep <- max(dNdt.dep)
+```
+
+Then, find the population size at which this maximum yield occurs using a `for()` loop.
+```{r}
+# annotate the for() loop
+for(i in 1:length(Nset)){ #look over the Nset
+  if(dNdt.dep[i] == Y_MSY.dep){ # when the dndt.over is equal to Ymsy.dep then we have found the max
+    N_MSY.dep <- Nset[i] #store that value and store as the N_msy.dep 
+  }
+}
+
+N_MSY.dep
+```
+
+Lastly, calculate effort given your values for `Y_MSY.dep` and `N_MSY.dep`. Recall that $Y = qEN$. Name this `E_MSY.dep`.
+```{r}
+E_MSY.dep <- Y_MSY.dep/(q*N_MSY.dep)
+E_MSY.dep
+
+```
+
+Again, we're going to create a new vector called `growth.dep` that will be the same as `dNdt.dep`.
+```{r}
+growth.dep <- dNdt.dep
+```
+
+
+Now that you're done, check your results by making a graph of population change due to biology (in black) and economics (in blue) as a function of population size.
+```{r}
+#################################
+# 1. biology
+#################################
+plot(x = Nset, y = growth.dep, 
+     type = 'l',
+     lwd = 2, 
+     las = 1, 
+     xlab = 'N', ylab = 'Change in Population')
+abline(h = 0)
+
+#################################
+# 2. economics
+#################################
+lines(x = Nset, y = q*E_MSY.dep*Nset, #Y=qEN, 
+      lwd = 2,
+      col = 'royalblue2')
+
+#################################
+# 3. stable equilibria
+#################################
+points(x = 0, y = 0, 
+       pch = 21, 
+       cex = 1.5, 
+       bg = 'black')
+points(x = N_MSY.dep, y = Y_MSY.dep, 
+       pch = 21, 
+       cex = 1.5,
+       bg= 'black')
+
+#################################
+# 4. legend
+#################################
+legend(x = 0, y = -1, 
+       pt.cex = 1.5, 
+       legend = c('growth', 'harvest', 'unstable equil.', 'stable equil.'), 
+       lwd = c(2, 2, NaN, NaN), 
+       pch = c(NaN, NaN, 21, 21), 
+       pt.bg = c('white', 'white', 'white', 'black'), 
+       col = c('black', 'royalblue2', 'black', 'black'))
+```
+
+## a. Unstable equilibrium
+
+You'll notice we don't have our unstable equilibrium labeled. How can we calculate the solution for the unstable equilibrium?
+```{r}
+N_star_unstable <- ((-r/A) + (sqrt((r^2/A^2) - ((4*r*q*E_MSY.dep)/(K*A)))) ) / ((-2*r) / (K*A))
+
+Y.unstable.dep <- q * E_MSY.dep * N_star_unstable
+```
+
+Then, we can plot it.
+```{r}
+############################
+# 1. biology
+############################
+plot(x = Nset, y = growth.dep, 
+     type = 'l',
+     lwd = 2, 
+     las = 1,
+     xlab = 'N', ylab = 'Change in Population')
+abline(h = 0)
+
+############################
+# 2. economics
+############################
+lines(x = Nset, y = q*E_MSY.dep*Nset, 
+      lwd = 2, 
+      col = 'royalblue2')
+
+############################
+# 3. equilibria
+############################
+# stable
+points(x = 0, y = 0, 
+       pch = 21, 
+       cex = 1.5, 
+       bg = 'black')
+points(x = N_MSY.dep, y = Y_MSY.dep, 
+       pch = 21, 
+       cex = 1.5, 
+       bg = 'black')
+# unstable
+points(x = N_star_unstable, y = Y.unstable.dep, 
+       pch = 21, cex = 1.5,
+       bg = 'white')
+
+############################
+# 4. legend
+############################
+legend(x = 0, y = -1, 
+       legend = c('growth', 'harvest', 'unstable equil.', 'stable equil.'), 
+       lwd = c(2, 2, NaN, NaN), 
+       pch = c(NaN, NaN, 21, 21), 
+       pt.cex = 1.5, 
+       pt.bg = c('white', 'white', 'white', 'black'), 
+       col = c('black', 'royalblue2', 'black', 'black'))
+
+# What's different about this graph? Hint: Look at the intersections between the blue and black lines.
+```
+
+Use a simulation to make sure that your equilibrium point is accurate. Is it stable? What if you start at N0 = K? N0 = 2? Hint: Make sure your simulation times are sufficiently long. In your timeseries plots, you should see the solution stabilize (i.e., turn into a horizontal line by the end of the timeseries)
+```{r}
+#################################
+# 1. data to iterate over
+#################################
+# use tset again
+
+
+
+#################################
+# 2. holding vector
+#################################
+# create a bunch of different starting population sizes
+N.simu.dep <- NaN*tset
+N0.K <- K
+N0.2 <- 2
+N0.unstable <- N_star_unstable
+N0.up <- N_star_unstable + 0.1
+N0.down <- N_star_unstable - 0.1
+
+# fill in initial conditions
+N.simu.dep[1] <- N0.up # try the different N0 values defined above here
+
+
+
+#################################
+# 3. the for() loop
+#################################
+for(i in 2:length(tset)) {
+  dt <- tset[i] - tset[i - 1] # calculate change in time
+  dNdt.depen <- (r*N.simu.dep[i-1]*(1-N.simu.dep[i-1]/K)*(N.simu.dep[i-1]/A)-q*E_MSY.dep*N.simu.dep[i-1])*dt # logistic with N/A addition for depensating also with harvest
+  N.simu.dep[i] <- N.simu.dep[i-1] + dNdt.depen
+}
+```
+
+After checking the output of the `for()` loop, plot it.
+```{r}
+plot(x = tset, y = N.simu.dep, 
+     type = "l", 
+     lwd = 2, 
+     xlab = "Time", ylab = "Population Size")
+```
+
+## b. Tipping points
+
+Your results should suggest that this population has a 'tipping point': If the population is above the threshold, it will grow to $N^*$, but if the population is below the threshold, it will crash to zero. In ecology, we refer to systems like this as having "alternative stable states." Estimate the value of this tipping point. Hint: Pay attention to the extra intersection between the blue and black lines in the change in population graph. Make a timeseries plot (N vs. time) for multiple simulated populations, showing the system's dependence on initial conditions (N0).
+```{r}
+##########################################
+# 1. designate a data vector (use tset)
+##########################################
+
+
+
+############################################
+# 2. holding vector and initial conditions
+############################################
+N0.low <- 33
+N0.high <- 34
+
+N.simu.dep <- NaN*tset
+N.simu.dep.low <- NaN*tset
+N.simu.dep.high <- NaN*tset
+N.simu.dep.100 <- NaN*tset
+
+N.simu.dep[1] <- N0
+N.simu.dep.low[1] <- N0.low
+N.simu.dep.high[1] <- N0.high
+N.simu.dep.100[1] <- N0.100
+
+##########################################
+# 3. the for() loop
+##########################################
+for(i in 2:length(tset)){
+  deltat <- tset[i]-tset[i-1]
+  deltaN <- (r*N.simu.dep[i-1]*(1-N.simu.dep[i-1]/K)*(N.simu.dep[i-1]/A)-q*E_MSY.dep*N.simu.dep[i-1])*deltat
+  N.simu.dep[i] <- N.simu.dep[i-1]+deltaN
+  
+  deltaN <- (r*N.simu.dep.low[i-1]*(1-N.simu.dep.low[i-1]/K)*(N.simu.dep.low[i-1]/A)-q*E_MSY.dep*N.simu.dep.low[i-1])*deltat
+  N.simu.dep.low[i] <- N.simu.dep.low[i-1]+deltaN
+  
+  deltaN <- (r*N.simu.dep.high[i-1]*(1-N.simu.dep.high[i-1]/K)*(N.simu.dep.high[i-1]/A)-q*E_MSY.dep*N.simu.dep.high[i-1])*deltat
+  N.simu.dep.high[i] <- N.simu.dep.high[i-1]+deltaN
+  
+  deltaN <- (r*N.simu.dep.100[i-1]*(1-N.simu.dep.100[i-1]/K)*(N.simu.dep.100[i-1]/A)-q*E_MSY.dep*N.simu.dep.100[i-1])*deltat
+  N.simu.dep.100[i] <- N.simu.dep.100[i-1]+deltaN
+}
+```
+
+After you check the output of your `for()` loop, plot it.
+```{r}
+###################################
+# 1. plot N as a function of time
+###################################
+plot(tset, N.simu.dep, 
+     type = 'l', 
+     ylim = c(0, K), 
+     las = 1, 
+     lwd = 2, 
+     xlab = 'Time', ylab = 'Population Size')
+
+#################################################
+# 2. add lines for different initial conditions
+#################################################
+lines(tset, N.simu.dep.low, 
+      col = 'paleturquoise3', 
+      lwd = 2)
+lines(tset, N.simu.dep.high, 
+      col = 'peachpuff3', 
+      lwd = 2)
+lines(tset, N.simu.dep.100, 
+      col = 'coral2', 
+      lwd = 2)
+
+###################################
+# 3. legend
+###################################
+legend(x = max(tset)*.6, y = K, 
+       lwd = 2,
+       legend = c('N0=2', 'N0=33', 'N0=34', 'N0=100'), 
+       col = c('black', 'paleturquoise3', 'peachpuff3', 'coral2'), 
+       horiz = FALSE)
+```
+
+# 7. Homework
+
+55 points total
+
+We'll set up our parameters here, to make sure we're on the same page.
+```{r}
+r <- 0.5
+K <- 100
+q <- 0.1
+A <- K/2 
+N0 <- 2
+```
+
+## 1. Logistically growing stocks
+### i. Show your plot for population change vs. N (black line = biology, blue line = harvest) for a stock that grows logistically and is being managed to give its maximum sustainable yield.
+**Remember: label your axes, and show legends!  **
+
+```{r}
+## answer here: code to output your plot
+```
+
+
+ /1 point for logistic growth line  
+ /1 point for harvest line at MSY  
+ /1 point for stable/unstable equilibria  
+ /1 point for legend  
+ /1 axes (popn change vs. N)  
+ = /5 points total  
+ 
+
+### ii. What are N_MSY, E_MSY, and Y_MSY for this stock? Print the values.  
+
+```{r}
+## answer here
+```
+
+
+ /1 for N_MSY  
+ /1 for E_MSY  
+ /1 for Y_MSY  
+ = /3 points total  
+
+## 2. Overcompensating stocks  
+### i. Show your plot for population change vs. N for a stock that exhibits overcompensation being harvested at MSY.   
+
+```{r}
+## answer here
+```
+    
+ /1 point for overcompensating stock line  
+ /1 point for harvest line at MSY  
+ /1 point for stable/unstable equilibria  
+ /1 point for legend  
+ /1 axes (popn change vs. N)  
+ = /5 points total  
+
+### ii. What are N_MSY, E_MSY, and Y_MSY for this stock? Print the values. 
+
+```{r}
+## answer here
+```
+  
+ /1 for N_MSY.over  
+ /1 for E_MSY.over  
+ /1 for Y_MSY.over  
+ = /3 points total  
+
+ 
+## 3. Depensating stocks
+### i. Show your plot for population change vs. N at MSY  
+
+```{r}
+## answer here
+```
+
+ /1 point for depensating stock line  
+ /1 point for harvest line at MSY  
+ /1 point for stable equilibrium  
+ /1 point for unstable equilibrium  
+ /1 point for legend  
+ /1 axes (popn change vs. N)  
+ = /6 points total  
+ 
+ 
+### ii. What are N_MSY, E_MSY, and Y_MSY for this stock? Print the values.  
+
+```{r}
+## answer here
+```
+
+ /1 for N_MSY.dep  
+ /1 for E_MSY.dep  
+ /1 for Y_MSY.dep  
+ = /3 points total  
+
+ 
+### iii. At what population size does this model exhibit a 'tipping point'? What are the two alternative states it might exhibit?  
+
+**Write answer here**
+
+ /1 point for 'tipping point' population size  
+ /1 point first alternative state  
+ /1 point for second alternative state   
+ = /3 points total 
+
+ 
+### iv. Provide a graph of population trajectories (using different initial population sizes) that illustrates this tipping point. Hint: Your graph should have multiple population trajectories on it, and you will need a legend that indicates the N0 values corresponding to each.  
+
+```{r}
+## answer here
+```
+
+ /1 point for population trajectory 1  
+ /1 point for population trajectory 2  
+ /1 point for legend  
+ /1 point for axes (N vs t)  
+ = /4 points total
+ 
+### v. If you were a manager of this stock, what would you be worried about? How might you try to avoid that problem?  
+
+**Write answer here**
+
+= /2 points total  
+
+## 4. Subsidized stocks  
+Consider a fishery whose population grows logistically and which is next to a marine reserve. No fishing is allowed in this marine reserve, so it contains a large, healthy population of fish. Some of this population spills over into the fished area at a rate of 'M' fish per unit of time.  
+We can represent this mathematically as:  
+$\frac{dN}{dt} = r*N*(1-\frac{N}{K}) - q*E*N + M$  
+Let's continue to use the parameters $r = 0.5$ and $K = 100$. Let's further set $M = 10$.  
+
+### i. Plot the 'biology' and the 'economics' as a function of population size. That is, make a plot with N on the x-axis and two lines, one representing the subsidized logistic growth (r*N*(1-N/K) + M), and one representing harvest (q*E*N). For the economics, choose E = E_MSY from your logistic analysis in the first part of this lab.  
+
+```{r}
+## answer here
+```
+
+ /1 point for subsidized stock line  
+ /1 point for harvest line   
+ /1 point legend  
+ /1 point for axes (popn change vs. N)  
+ = /6 points total  
+ 
+### ii. Does this effort level still yield the maximum sustainable yield?  
+
+**Write answer here**
+
+ = /1 point total   
+ 
+### iii. If not, adjust effort and report your new E_MSY, N_MSY, and Y_MSY.  
+
+```{r}
+## answer here
+```
+
+ /1 point for N_MSY.sub  
+ /1 point for E_MSY.sub  
+ /1 point for Y_MSY.sub  
+ = /3 points  
+
+### iv. Make a new version of your graph from part (i), but using your new E_MSY.  
+
+```{r}
+## answer here
+```
+  
+ /1 point for subsidized stock line  
+ /1 point for harvest line with new E_MSY from the subsidized stock analysis  
+ /1 point for stable equilibrium  
+ /1 point legend  
+ /1 point for axes (popn change vs. N)  
+ = /5 points total  
+
+  
+### v. Explain how having the nearby reserve affected the fishery you are managing.  
+
+**Write answer here**
+
+ = /2 points total   
+
+
+## 5. Comparison across stocks: Compare N_MSY and E_MSY for the four stocks you've studied in this lab. Explain, biologically, why any differences exist.  
+
+**Write answer here**
+
+ /2 points for N_MSY comparison across logistic, overcompensating, depensating and subsidized stocks  
+ /2 points for E_MSY comparison across logistic, overcompensating, depensating and subsidized stocks  
+ = /4 points total  
+
