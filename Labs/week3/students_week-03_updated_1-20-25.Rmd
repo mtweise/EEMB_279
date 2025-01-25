@@ -1231,7 +1231,46 @@ N0 <- 2
 **Remember: label your axes, and show legends!  **
 
 ```{r}
-## answer here: code to output your plot
+# 1. plot population growth as a function of N
+################################################
+plot(x = Nset, y = growth.log, 
+     type = 'l', 
+     las = 1, 
+     lwd = 2, 
+     xlab = 'N', ylab = 'Population Change')
+
+# add a line at the x-axis
+abline(h = 0, lwd = 1)
+
+################################################
+# 2. plot the economics of harvest
+################################################
+lines(x = Nset, y = q*E*Nset, 
+      col = 'royalblue2', 
+      lwd = 2)
+
+################################################
+# 3. add equilibria
+################################################
+# unstable
+points(x = 0, y = 0, 
+       pch = 21, cex = 1.5)
+# stable
+points(y = Ystar, x = Nstar, 
+       pch = 21, cex = 1.5, 
+       bg = 'black')
+
+################################################
+# 4. add a legend
+################################################
+legend(x = 0, y = -0.5, 
+       legend = c('growth', 'harvest', 'unstable equil.', 'stable equil.'), 
+       lwd = c(2, 2, NaN, NaN), 
+       pch = c(NaN, NaN, 21, 21), 
+       pt.cex = 1.5, 
+       pt.bg = c('white', 'white', 'white', 'black'), 
+       col = c('black', 'royalblue2', 'black', 'black'),
+       ncol = 2)
 ```
 
 
@@ -1246,7 +1285,14 @@ N0 <- 2
 ### ii. What are N_MSY, E_MSY, and Y_MSY for this stock? Print the values.  
 
 ```{r}
-## answer here
+N_MSY <- K/2
+E_MSY <- r/q/2
+Y_MSY <- r*K/4
+
+
+N_MSY 
+E_MSY 
+Y_MSY
 ```
 
 
@@ -1259,7 +1305,46 @@ N0 <- 2
 ### i. Show your plot for population change vs. N for a stock that exhibits overcompensation being harvested at MSY.   
 
 ```{r}
-## answer here
+###################################
+# 1. biology
+###################################
+plot(x = Nset, y = growth.over, 
+     type = 'l', 
+     lwd = 2, 
+     las = 1, 
+     xlab = 'N', ylab = 'Change in Population')
+# add a line at the x-axis
+abline(h = 0)
+
+###################################
+# 2. economics
+###################################
+lines(x = Nset, y = q*E_MSY.over*Nset, #Y=qEN 
+      lwd = 2,
+      col = 'royalblue2')
+
+###################################
+# 3. equilibria
+###################################
+# unstable
+points(x = 0, y = 0, 
+       pch = 21, cex = 1.5)
+# stable
+points(x = N_MSY.over, y = Y_MSY.over,
+       pch = 21, cex = 1.5, 
+       bg = 'black')
+
+###################################
+# 4. legend
+###################################
+legend(x = 80, y = Y_MSY.over, 
+       legend = c('growth', 'harvest', 'unstable equil.', 'stable equil.'), 
+       lwd = c(2, 2, NaN, NaN), 
+       pch = c(NaN, NaN, 21, 21), 
+       pt.cex = 1.5, 
+       cex = 0.8,
+       pt.bg = c('white', 'white', 'white', 'black'), 
+       col = c('black', 'royalblue2', 'black', 'black'))
 ```
     
  /1 point for overcompensating stock line  
@@ -1272,7 +1357,24 @@ N0 <- 2
 ### ii. What are N_MSY, E_MSY, and Y_MSY for this stock? Print the values. 
 
 ```{r}
-## answer here
+Y_MSY.over <- max(dNdt.over) #keep an eye out for Caitlan's explanation as to why this works
+Y_MSY.over
+
+for(i in 1:length(Nset)) { 
+  # Loop through each index of the vector Nset
+  if(!is.na(dNdt.over[i]) && dNdt.over[i] == Y_MSY.over) { 
+    # Check if dNdt.over[i] is not NA AND equals Y_MSY.over
+    N_MSY.over <- Nset[i] 
+    # If the condition is true, store the corresponding Nset value as N_MSY.over
+  }
+}
+
+N_MSY.over
+#THIS ISNT RIGHT ???
+
+E_MSY.over <- Y_MSY.over/(q*N_MSY.over)
+E_MSY.over
+
 ```
   
  /1 for N_MSY.over  
@@ -1285,7 +1387,51 @@ N0 <- 2
 ### i. Show your plot for population change vs. N at MSY  
 
 ```{r}
-## answer here
+############################
+# 1. biology
+############################
+plot(x = Nset, y = growth.dep, 
+     type = 'l',
+     lwd = 2, 
+     las = 1,
+     xlab = 'N', ylab = 'Change in Population')
+abline(h = 0)
+
+############################
+# 2. economics
+############################
+lines(x = Nset, y = q*E_MSY.dep*Nset, 
+      lwd = 2, 
+      col = 'royalblue2')
+
+############################
+# 3. equilibria
+############################
+# stable
+points(x = 0, y = 0, 
+       pch = 21, 
+       cex = 1.5, 
+       bg = 'black')
+points(x = N_MSY.dep, y = Y_MSY.dep, 
+       pch = 21, 
+       cex = 1.5, 
+       bg = 'black')
+# unstable
+points(x = N_star_unstable, y = Y.unstable.dep, 
+       pch = 21, cex = 1.5,
+       bg = 'white')
+
+############################
+# 4. legend
+############################
+legend(x = 0, y = -1, 
+       legend = c('growth', 'harvest', 'unstable equil.', 'stable equil.'), 
+       lwd = c(2, 2, NaN, NaN), 
+       pch = c(NaN, NaN, 21, 21), 
+       pt.cex = 1.5, 
+       pt.bg = c('white', 'white', 'white', 'black'), 
+       col = c('black', 'royalblue2', 'black', 'black'))
+
 ```
 
  /1 point for depensating stock line  
@@ -1300,7 +1446,18 @@ N0 <- 2
 ### ii. What are N_MSY, E_MSY, and Y_MSY for this stock? Print the values.  
 
 ```{r}
-## answer here
+Y_MSY.dep <- max(dNdt.dep)
+
+for(i in 1:length(Nset)){ #look over the Nset
+  if(dNdt.dep[i] == Y_MSY.dep){ # when the dndt.over is equal to Ymsy.dep then we have found the max
+    N_MSY.dep <- Nset[i] #store that value and store as the N_msy.dep 
+  }
+}
+
+N_MSY.dep
+
+E_MSY.dep <- Y_MSY.dep/(q*N_MSY.dep)
+E_MSY.dep
 ```
 
  /1 for N_MSY.dep  
@@ -1322,7 +1479,37 @@ N0 <- 2
 ### iv. Provide a graph of population trajectories (using different initial population sizes) that illustrates this tipping point. Hint: Your graph should have multiple population trajectories on it, and you will need a legend that indicates the N0 values corresponding to each.  
 
 ```{r}
-## answer here
+###################################
+# 1. plot N as a function of time
+###################################
+plot(tset, N.simu.dep, 
+     type = 'l', 
+     ylim = c(0, K), 
+     las = 1, 
+     lwd = 2, 
+     xlab = 'Time', ylab = 'Population Size')
+
+#################################################
+# 2. add lines for different initial conditions
+#################################################
+lines(tset, N.simu.dep.low, 
+      col = 'paleturquoise3', 
+      lwd = 2)
+lines(tset, N.simu.dep.high, 
+      col = 'peachpuff3', 
+      lwd = 2)
+lines(tset, N.simu.dep.100, 
+      col = 'coral2', 
+      lwd = 2)
+
+###################################
+# 3. legend
+###################################
+legend(x = max(tset)*.6, y = K, 
+       lwd = 2,
+       legend = c('N0=2', 'N0=33', 'N0=34', 'N0=100'), 
+       col = c('black', 'paleturquoise3', 'peachpuff3', 'coral2'), 
+       horiz = FALSE)
 ```
 
  /1 point for population trajectory 1  
@@ -1333,7 +1520,7 @@ N0 <- 2
  
 ### v. If you were a manager of this stock, what would you be worried about? How might you try to avoid that problem?  
 
-**Write answer here**
+I would be worried about being at the unstable equilibrium. ?
 
 = /2 points total  
 
