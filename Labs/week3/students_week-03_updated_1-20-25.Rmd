@@ -1231,46 +1231,51 @@ N0 <- 2
 **Remember: label your axes, and show legends!  **
 
 ```{r}
-# 1. plot population growth as a function of N
+## 1. plot population growth as a function of N
 ################################################
-plot(x = Nset, y = growth.log, 
-     type = 'l', 
-     las = 1, 
-     lwd = 2, 
-     xlab = 'N', ylab = 'Population Change')
+plot(x = Nset, y = growth.log, # Create a line plot with Nset on the x-axis and growth.log on the y-axis
+     type = 'l', # Use a line plot ('l' stands for line)
+     las = 1, # Rotate axis labels to be horizontal
+     lwd = 2, # Set the line width to 2 for better visibility
+     xlab = 'N', # Label the x-axis as 'N'
+     ylab = 'Population Change') # Label the y-axis as 'Population Change'
 
 # add a line at the x-axis
-abline(h = 0, lwd = 1)
+abline(h = 0, lwd = 1) # Draw a horizontal line at y = 0 to represent equilibrium, with a line width of 1
 
 ################################################
 # 2. plot the economics of harvest
 ################################################
-lines(x = Nset, y = q*E*Nset, 
-      col = 'royalblue2', 
-      lwd = 2)
+lines(x = Nset, y = q*E*Nset, # Add a line plot showing harvest as a function of Nset
+      col = 'royalblue2', # Set the line color to royal blue
+      lwd = 2) # Set the line width to 2
 
 ################################################
 # 3. add equilibria
 ################################################
 # unstable
-points(x = 0, y = 0, 
-       pch = 21, cex = 1.5)
+points(x = 0, y = 0, # Plot a point at (0, 0), representing an unstable equilibrium
+       pch = 21,  # Use a point style with a border and optional fill
+       cex = 1.5) # Set the size of the point to 1.5
+
 # stable
-points(y = Ystar, x = Nstar, 
-       pch = 21, cex = 1.5, 
-       bg = 'black')
+points(y = Ystar, x = Nstar, # Plot a point at (Nstar, Ystar), representing a stable equilibrium
+       pch = 21, # Use the same point style as above
+       cex = 1.5, # Set the size of the point to 1.5
+       bg = 'black') # Fill the point with black to indicate stability
 
 ################################################
 # 4. add a legend
 ################################################
-legend(x = 0, y = -0.5, 
-       legend = c('growth', 'harvest', 'unstable equil.', 'stable equil.'), 
-       lwd = c(2, 2, NaN, NaN), 
-       pch = c(NaN, NaN, 21, 21), 
-       pt.cex = 1.5, 
-       pt.bg = c('white', 'white', 'white', 'black'), 
-       col = c('black', 'royalblue2', 'black', 'black'),
-       ncol = 2)
+legend(x = 0, y = -0.5, # Position the legend at coordinates (0, -0.5)
+       legend = c('growth', 'harvest', 'unstable equil.', 'stable equil.'), # Define labels for the legend
+       lwd = c(2, 2, NaN, NaN), # Set line widths for applicable legend entries (NaN for no line)
+       pch = c(NaN, NaN, 21, 21), # Set point styles for applicable entries (NaN for no point)
+       pt.cex = 1.5,  # Set the size of the points in the legend to 1.5
+       pt.bg = c('white', 'white', 'white', 'black'), # Set background colors for points in the legend
+       col = c('black', 'royalblue2', 'black', 'black'), # Set colors for lines and points in the legend
+       ncol = 2)  # Arrange the legend into 2 columns
+
 ```
 
 
@@ -1285,14 +1290,14 @@ legend(x = 0, y = -0.5,
 ### ii. What are N_MSY, E_MSY, and Y_MSY for this stock? Print the values.  
 
 ```{r}
-N_MSY <- K/2
-E_MSY <- r/q/2
-Y_MSY <- r*K/4
+N_MSY <- K/2 #N_MSY is the variable K divided by 2
+E_MSY <- r/q/2 #E_MSY is the variable r divided by q divided by 2
+Y_MSY <- r*K/4 #Y_MSY is the variable r times K divided by 4
 
 
-N_MSY 
-E_MSY 
-Y_MSY
+N_MSY #print
+E_MSY #print
+Y_MSY #print
 ```
 
 
@@ -1308,43 +1313,49 @@ Y_MSY
 ###################################
 # 1. biology
 ###################################
-plot(x = Nset, y = growth.over, 
-     type = 'l', 
-     lwd = 2, 
-     las = 1, 
-     xlab = 'N', ylab = 'Change in Population')
+plot(x = Nset, y = growth.over,  # Create a line plot with Nset on the x-axis and growth.over on the y-axis
+     type = 'l', # Use a line plot ('l' stands for line)
+     lwd = 2, # Set the line width to 2 for better visibility
+     las = 1, # Rotate axis labels to be horizontal
+     xlab = 'N', # Label the x-axis as 'N'
+     ylab = 'Change in Population') # Label the y-axis as 'Change in Population'
+
 # add a line at the x-axis
-abline(h = 0)
+abline(h = 0)  # Draw a horizontal line at y = 0 to represent equilibrium
 
 ###################################
 # 2. economics
 ###################################
-lines(x = Nset, y = q*E_MSY.over*Nset, #Y=qEN 
-      lwd = 2,
-      col = 'royalblue2')
+lines(x = Nset, y = q*E_MSY.over*Nset, # Add a line plot showing harvest as a function of Nset (Y = qEN)
+      lwd = 2, # Set the line width to 2
+      col = 'royalblue2') # Set the line color to royal blue
 
 ###################################
 # 3. equilibria
 ###################################
 # unstable
-points(x = 0, y = 0, 
-       pch = 21, cex = 1.5)
+points(x = 0, y = 0,  # Plot a point at (0, 0), representing an unstable equilibrium
+       pch = 21, # Use a point style with a border and optional fill
+       cex = 1.5) # Set the size of the point to 1.5
+
 # stable
-points(x = N_MSY.over, y = Y_MSY.over,
-       pch = 21, cex = 1.5, 
-       bg = 'black')
+points(x = N_MSY.over, y = Y_MSY.over, # Plot a point at (N_MSY.over, Y_MSY.over)
+       pch = 21,    # Use the same point style as above
+       cex = 1.5, # Set the size of the point to 1.5
+       bg = 'black') # Fill the point with black to indicate stability
 
 ###################################
 # 4. legend
 ###################################
-legend(x = 80, y = Y_MSY.over, 
-       legend = c('growth', 'harvest', 'unstable equil.', 'stable equil.'), 
-       lwd = c(2, 2, NaN, NaN), 
-       pch = c(NaN, NaN, 21, 21), 
-       pt.cex = 1.5, 
-       cex = 0.8,
-       pt.bg = c('white', 'white', 'white', 'black'), 
-       col = c('black', 'royalblue2', 'black', 'black'))
+legend(x = 80, y = Y_MSY.over,  # Position the legend at coordinates (80, Y_MSY.over)
+       legend = c('growth', 'harvest', 'unstable equil.', 'stable equil.'), # Define labels for the legend
+       lwd = c(2, 2, NaN, NaN), # Set line widths for applicable legend entries (NaN for no line)
+       pch = c(NaN, NaN, 21, 21), # Set point styles for applicable entries (NaN for no point)
+       pt.cex = 1.5,  # Set the size of the points in the legend to 1.5
+       cex = 0.8, # Adjust the text size in the legend to 0.8
+       pt.bg = c('white', 'white', 'white', 'black'), # Set background colors for points in the legend
+       col = c('black', 'royalblue2', 'black', 'black')) # Set colors for lines and points in the legend
+
 ```
     
  /1 point for overcompensating stock line  
@@ -1362,10 +1373,8 @@ Y_MSY.over
 
 for(i in 1:length(Nset)) { 
   # Loop through each index of the vector Nset
-  if(!is.na(dNdt.over[i]) && dNdt.over[i] == Y_MSY.over) { 
-    # Check if dNdt.over[i] is not NA AND equals Y_MSY.over
-    N_MSY.over <- Nset[i] 
-    # If the condition is true, store the corresponding Nset value as N_MSY.over
+  if(!is.na(dNdt.over[i]) && dNdt.over[i] == Y_MSY.over) { # Check if dNdt.over[i] is not NA AND equals Y_MSY.over
+    N_MSY.over <- Nset[i] # If the condition is true, store the corresponding Nset value as N_MSY.over
   }
 }
 
@@ -1390,47 +1399,50 @@ E_MSY.over
 ############################
 # 1. biology
 ############################
-plot(x = Nset, y = growth.dep, 
-     type = 'l',
-     lwd = 2, 
-     las = 1,
-     xlab = 'N', ylab = 'Change in Population')
-abline(h = 0)
+plot(x = Nset, y = growth.dep, # Create a line plot with Nset on the x-axis and growth.dep on the y-axis
+     type = 'l', # Use a line plot 
+     lwd = 2, # Set the line width to 2 for better visibility
+     las = 1, # Rotate axis labels to be horizontal
+     xlab = 'N', # Label the x-axis as 'N'
+     ylab = 'Change in Population') # Label the y-axis as 'Change in Population'
+abline(h = 0) # Draw a horizontal line at y = 0
 
 ############################
 # 2. economics
 ############################
-lines(x = Nset, y = q*E_MSY.dep*Nset, 
-      lwd = 2, 
-      col = 'royalblue2')
+lines(x = Nset, y = q*E_MSY.dep*Nset, # Add a line plot showing harvest as a function of Nset (Y = qEN)
+      lwd = 2, # Set the line width to 2
+      col = 'royalblue2')# Set the line color to royal blue
 
 ############################
 # 3. equilibria
 ############################
 # stable
-points(x = 0, y = 0, 
-       pch = 21, 
-       cex = 1.5, 
-       bg = 'black')
-points(x = N_MSY.dep, y = Y_MSY.dep, 
-       pch = 21, 
-       cex = 1.5, 
-       bg = 'black')
+points(x = 0, y = 0,  # Plot a point at (0, 0), representing a stable equilibrium
+       pch = 21,  # Use a point style with a border and optional fill
+       cex = 1.5, # Set the size of the point to 1.5
+       bg = 'black')  # Fill the point with black to indicate stability
+points(x = N_MSY.dep, y = Y_MSY.dep, # Plot a point at (N_MSY.dep, Y_MSY.dep)
+       pch = 21, # Use the same point style
+       cex = 1.5, # Set the size of the point to 1.5
+       bg = 'black') # Fill the point with black to indicate stability
+
 # unstable
-points(x = N_star_unstable, y = Y.unstable.dep, 
-       pch = 21, cex = 1.5,
-       bg = 'white')
+points(x = N_star_unstable, y = Y.unstable.dep, # Plot a point at (N_star_unstable, Y.unstable.dep)
+       pch = 21,  # Use the same point style
+       cex = 1.5, # Set the size of the point to 1.5
+       bg = 'white') # Fill the point with white to indicate instability
 
 ############################
 # 4. legend
 ############################
-legend(x = 0, y = -1, 
-       legend = c('growth', 'harvest', 'unstable equil.', 'stable equil.'), 
-       lwd = c(2, 2, NaN, NaN), 
-       pch = c(NaN, NaN, 21, 21), 
-       pt.cex = 1.5, 
-       pt.bg = c('white', 'white', 'white', 'black'), 
-       col = c('black', 'royalblue2', 'black', 'black'))
+legend(x = 0, y = -1, # Position the legend at coordinates (0, -1)
+       legend = c('growth', 'harvest', 'unstable equil.', 'stable equil.'), # Define labels for the legend
+       lwd = c(2, 2, NaN, NaN), # Set line widths for applicable legend entries (NaN for no line)
+       pch = c(NaN, NaN, 21, 21), # Set point styles for applicable entries (NaN for no point)
+       pt.cex = 1.5, # Set the size of the points in the legend to 1.5
+       pt.bg = c('white', 'white', 'white', 'black'), # Set background colors for points in the legend
+       col = c('black', 'royalblue2', 'black', 'black')) # Set colors for lines and points in the legend
 
 ```
 
@@ -1479,37 +1491,54 @@ E_MSY.dep
 ### iv. Provide a graph of population trajectories (using different initial population sizes) that illustrates this tipping point. Hint: Your graph should have multiple population trajectories on it, and you will need a legend that indicates the N0 values corresponding to each.  
 
 ```{r}
-###################################
-# 1. plot N as a function of time
-###################################
-plot(tset, N.simu.dep, 
-     type = 'l', 
-     ylim = c(0, K), 
-     las = 1, 
-     lwd = 2, 
-     xlab = 'Time', ylab = 'Population Size')
+############################
+# 1. biology
+############################
+plot(x = Nset, y = growth.dep, # Create a line plot with Nset on the x-axis and growth.dep on the y-axis
+     type = 'l', # Use a line plot 
+     lwd = 2,  # Set the line width to 2 for better visibility
+     las = 1, # Rotate axis labels to be horizontal
+     xlab = 'N', # Label the x-axis as 'N'
+     ylab = 'Change in Population') # Label the y-axis as 'Change in Population'
+abline(h = 0)# Draw a horizontal line at y = 0 to represent equilibrium
 
-#################################################
-# 2. add lines for different initial conditions
-#################################################
-lines(tset, N.simu.dep.low, 
-      col = 'paleturquoise3', 
-      lwd = 2)
-lines(tset, N.simu.dep.high, 
-      col = 'peachpuff3', 
-      lwd = 2)
-lines(tset, N.simu.dep.100, 
-      col = 'coral2', 
-      lwd = 2)
+############################
+# 2. economics
+############################
+lines(x = Nset, y = q*E_MSY.dep*Nset,  # Add a line plot showing harvest as a function of Nset (Y = qEN)
+      lwd = 2, # Set the line width to 2
+      col = 'royalblue2') # Set the line color to royal blue
 
-###################################
-# 3. legend
-###################################
-legend(x = max(tset)*.6, y = K, 
-       lwd = 2,
-       legend = c('N0=2', 'N0=33', 'N0=34', 'N0=100'), 
-       col = c('black', 'paleturquoise3', 'peachpuff3', 'coral2'), 
-       horiz = FALSE)
+############################
+# 3. equilibria
+############################
+# stable
+points(x = 0, y = 0, # Plot a point at (0, 0), representing a stable equilibrium
+       pch = 21, # Use a point style with a border and optional fill
+       cex = 1.5, # Set the size of the point to 1.5
+       bg = 'black') # Fill the point with black to indicate stability
+points(x = N_MSY.dep, y = Y_MSY.dep,   # Plot a point at (N_MSY.dep, Y_MSY.dep)
+       pch = 21,  # Use the same point style
+       cex = 1.5,# Set the size of the point to 1.5
+       bg = 'black') # Fill the point with black to indicate stability
+
+# unstable
+points(x = N_star_unstable, y = Y.unstable.dep, # Plot a point at (N_star_unstable, Y.unstable.dep)
+       pch = 21, # Use the same point style
+       cex = 1.5,  # Set the size of the point to 1.5
+       bg = 'white')  # Fill the point with white to indicate instability
+
+############################
+# 4. legend
+############################
+legend(x = 0, y = -1, # Position the legend at coordinates (0, -1)
+       legend = c('growth', 'harvest', 'unstable equil.', 'stable equil.'), # Define labels for the legend
+       lwd = c(2, 2, NaN, NaN), # Set line widths for applicable legend entries (NaN for no line)
+       pch = c(NaN, NaN, 21, 21), # Set point styles for applicable entries (NaN for no point)
+       pt.cex = 1.5, # Set the size of the points in the legend to 1.5
+       pt.bg = c('white', 'white', 'white', 'black'), # Set background colors for points in the legend
+       col = c('black', 'royalblue2', 'black', 'black')) # Set colors for lines and points in the legend
+
 ```
 
  /1 point for population trajectory 1  
@@ -1533,7 +1562,58 @@ Let's continue to use the parameters $r = 0.5$ and $K = 100$. Let's further set 
 ### i. Plot the 'biology' and the 'economics' as a function of population size. That is, make a plot with N on the x-axis and two lines, one representing the subsidized logistic growth (r*N*(1-N/K) + M), and one representing harvest (q*E*N). For the economics, choose E = E_MSY from your logistic analysis in the first part of this lab.  
 
 ```{r}
-## answer here
+############################
+# 1. biology
+############################
+r = 0.5 
+K = 100
+M = 10
+#NSET <-  r*N*(1-\frac{N}{K}) - q*E*N + M
+
+plot(x = Nset, y = growth.dep, # Create a line plot with Nset on the x-axis and growth.dep on the y-axis
+     type = 'l', # Use a line plot 
+     lwd = 2,  # Set the line width to 2 for better visibility
+     las = 1, # Rotate axis labels to be horizontal
+     xlab = 'N', # Label the x-axis as 'N'
+     ylab = 'Change in Population') # Label the y-axis as 'Change in Population'
+abline(h = 0)# Draw a horizontal line at y = 0 to represent equilibrium
+
+############################
+# 2. economics
+############################
+lines(x = Nset, y = q*E_MSY.dep*Nset,  # Add a line plot showing harvest as a function of Nset (Y = qEN)
+      lwd = 2, # Set the line width to 2
+      col = 'royalblue2') # Set the line color to royal blue
+
+############################
+# 3. equilibria
+############################
+# stable
+points(x = 0, y = 0, # Plot a point at (0, 0), representing a stable equilibrium
+       pch = 21, # Use a point style with a border and optional fill
+       cex = 1.5, # Set the size of the point to 1.5
+       bg = 'black') # Fill the point with black to indicate stability
+points(x = N_MSY.dep, y = Y_MSY.dep,   # Plot a point at (N_MSY.dep, Y_MSY.dep)
+       pch = 21,  # Use the same point style
+       cex = 1.5,# Set the size of the point to 1.5
+       bg = 'black') # Fill the point with black to indicate stability
+
+# unstable
+points(x = N_star_unstable, y = Y.unstable.dep, # Plot a point at (N_star_unstable, Y.unstable.dep)
+       pch = 21, # Use the same point style
+       cex = 1.5,  # Set the size of the point to 1.5
+       bg = 'white')  # Fill the point with white to indicate instability
+
+############################
+# 4. legend
+############################
+legend(x = 0, y = -1, # Position the legend at coordinates (0, -1)
+       legend = c('growth', 'harvest', 'unstable equil.', 'stable equil.'), # Define labels for the legend
+       lwd = c(2, 2, NaN, NaN), # Set line widths for applicable legend entries (NaN for no line)
+       pch = c(NaN, NaN, 21, 21), # Set point styles for applicable entries (NaN for no point)
+       pt.cex = 1.5, # Set the size of the points in the legend to 1.5
+       pt.bg = c('white', 'white', 'white', 'black'), # Set background colors for points in the legend
+       co
 ```
 
  /1 point for subsidized stock line  
