@@ -1,28 +1,16 @@
 ---
-title: 'Lab 3: Optimal Harvest'
-author: "Mads"
-date: "23 January 2025"
-output: 
+title: 'Mads HW week 3'
+output:
+  pdf_document:
+    toc: true
   html_document:
     toc: true
-    toc_float: true  # Optional, makes the TOC float on the side
+    toc_float: true
 ---
 
-# Important Deadlines
+# Bifurcation diagram review
 
-##### Important checkpoints
-    
-* **Week 4 (Wednesday, January 29 by 11:59 PM)**: Identify your partners for your final project.
-
-* **Week 5 (Tuesday, February 4 by 11:59 PM)**: Paper selection (first choice and alternate) on this google sheet (https://docs.google.com/spreadsheets/d/1vcWsQ1MsTFamkS7lli94J-wor0p8dbMePD17rWS304s/edit?gid=0#gid=0) -- make sure to navigate to your section's tab!  
-
-* **Week 5 (Thursday, February 6)**: IN LAB: Appointments with Dr. Moeller and Caitlin in lab about your paper choices. We expect you to -- (1) have read both papers, and (2) explain to us why you have chosen this paper (For example -- What interests you about it? What ecological concept(s) does this paper address? Which portion will you analytically develop during your presentation? What time series simulation will you code up (and vary a parameter for) in your written report?). Refer to the Project guidelines on Canvas for more details!  
-
-Don't have a group yet? Talk to each other today AND put yourself in the "Group Selection List" on the google sheet below (use the tab for your section!)
-
-# Bifurcation diagram
-
-Remember that this is a figure where the stable equilibrium population size (N*) is plotted as a function of some parameter. In this case, let's make a bifurcation diagram for the logistic growth model of population growth, with stable equilibrium population size as a function of carrying capacity K.
+Last week, we talked about how to create bifurcation diagrams in lab. Remember that this is a figure where the stable equilibrium population size (N*) is plotted as a function of some parameter. In this case, let's make a bifurcation diagram for the logistic growth model of population growth, with stable equilibrium population size as a function of carrying capacity K.
 
 To do this in R, you'll have to make a nested for() loop. You'll basically tell R:  
 1. Create a vector of different values for your parameter (x-axis of the bifurcation diagram)  
@@ -381,10 +369,10 @@ N.simu.E1[1] <- N0 #
 #################################
 # 3. the for() loop
 #################################
-for(i in 2:length(tset)){ #iterare over the length of my test, note i habe an ititial condition in there 
-  dt <- tset[i] - tset[i-1] #change in time for this timestep
-  dNdt.E1 <- (r*N.simu.E1[i-1]*(1-N.simu.E1[i-1]/K)-q*E*N.simu.E1[i-1])*dt #change in population in this timestep according to the logistic growth and harvest equation
-  N.simu.E1[i] <- N.simu.E1[i-1] + dNdt.E1 #get my current population by adding previous population plus the new change in this timestep
+for(i in 2:length(tset)){ #
+  dt <- tset[i] - tset[i-1] #
+  dNdt.E1 <- (r*N.simu.E1[i-1]*(1-N.simu.E1[i-1]/K)-q*E*N.simu.E1[i-1])*dt #
+  N.simu.E1[i] <- N.simu.E1[i-1] + dNdt.E1 #
 }
 ```
 
@@ -481,8 +469,7 @@ legend(x = 0, y = -0.5,
        pch = c(NaN, NaN, 21, 21), 
        pt.cex = 1.5, 
        pt.bg = c('white', 'white', 'white', 'black'), 
-       col = c('black', 'royalblue2', 'black', 'black'),
-       ncol = 2)
+       col = c('black', 'royalblue2', 'black', 'black'))
 ```
 
 # 3. Examining how effort changes yield
@@ -549,14 +536,13 @@ What have you observed about increasing E? What would happen if you decreased E 
 
 Create a graph of yield (on the y-axis) as a function of effort (on the x-axis). First, choose a range of E values using the `seq()` function. A natural choice for lower bound is 0, but what about the upper bound? You can use your explorations above for inspiration. Also think about what we learned in class about $E = \frac{r}{q}$.
 ```{r}
-# fill in the blank for the upper bound (right now r/q=5)
-Eset <- seq(from = 0, to = 1.1*(r/q), length.out = 200)
+# fill in the blank for the upper bound
+Eset <- seq(from = 0, to = 10, length.out = 200)
 ```
 
 Then, find the associated equilibrium population size and name this variable `Nstar.set` with variable assignment. Recall that $N^* = K(1-\frac{qE}{r})$. Remember your variable assignments as you substitute in variables. 
 ```{r}
-Nstar.set <- K*(1-(q*Eset)/r)
-
+Nstar.set <- K*(1-((q*Eset)/r))
 ```
 
 Next, calculate the corresponding yields and name this variable `Yield.set` with variable assignment. Recall that $Y = qEN^*$.
@@ -566,7 +552,7 @@ Yield.set <- q*Eset*Nstar.set
 
 Finally, plot yields as a function of effort.
 ```{r}
-plot(x = Eset, y = Yield.set, 
+plot(x = Eset, y = Yield.set,  
      type = 'l', 
      lwd = 2, 
      xlab = 'Effort', ylab = 'Yield')
@@ -591,28 +577,22 @@ On pen and paper, prove that $N_{MSY} = \frac{K}{2}$, $E_{MSY} = \frac{r}{2q}$, 
 N_MSY <- K/2
 E_MSY <- r/q/2
 Y_MSY <- r*K/4
-
-
-N_MSY 
-E_MSY 
-Y_MSY 
 ```
 
 ## b. Estimate from graph
 
 First, find the effort value that produced the maximum yield. We can do this using a `for()` loop with a different application than what we usually use them for. Here, we'll estimate E and assign this value to the variable `E_MSY_est`.
 ```{r}
-for(i in 1:length(Eset)){ #go through the length of my E.set 
-  if(Yield.set[i]==max(Yield.set)){ #if the value for yield is at the maximum
-    E_MSY_est <- Eset[i] #store the corresponding effort value as my estimate
+for(i in 1:length(Eset)){
+  if(Yield.set[i]==max(Yield.set)){
+    E_MSY_est <- Eset[i]
   }
 }
-
 ```
 
 Calculate an estimate for $N_{MSY}$ called `N_MSY_est` given your previous estimate for $E_{MSY}$. Recall the algebraic solution for $N^*$ when $\frac{dN}{dt} = 0$ (at equilibrium) as $N^* = K(1-\frac{qE}{r})$.
 ```{r}
-N_MSY_est <- K*(1-((q*E_MSY_est)/r))
+N_MSY_est <- K*(1-((q*E_MSY)/r))
 ```
 
 Then, calculate an estimate for $Y_{MSY}$ and call it `Y_MSY_est`. Use the `max()` function to calculate the maximum yield value over your range of effort values. 
@@ -738,26 +718,23 @@ What are $N_{MSY}$, $E_{MSY}$, and $Y_{MSY}$ for this overcompensating populatio
 
 First, determine the maximum yield using the `max()` function. (**Hint:** where would yield be highest, if you are looking at the plot of $\frac{dN}{dt}$ as a function of $N$?) Use variable assignment to name this `Y_MSY.over`.
 ```{r}
-Y_MSY.over <- max(dNdt.over) #keep an eye out for Caitlan's explanation as to why this works
+Y_MSY.over <- max(dNdt.over)
 ```
 
 Then, find the population size at which this maximum yield occurs.
 ```{r}
 # annotate the for() loop
-for(i in 1:length(Nset)){ #look over the Nset
-  if(dNdt.over[i] == Y_MSY.over){ # when the dndt.over is equal to Ymsy.over then we have found the max
-    N_MSY.over <- Nset[i] #store that value and store as teh N_msy over 
+for(i in 1:length(Nset)){ #
+  if(dNdt.over[i] == Y_MSY.over){ #
+    N_MSY.over <- Nset[i] #
   }
 }
-
 N_MSY.over
 ```
 
 Lastly, calculate effort given your values for `Y_MSY.over` and `N_MSY.over`. Recall that $Y = qEN$. Name this value `E_MSY.over`.
 ```{r}
-E_MSY.over <- Y_MSY.over/(q*N_MSY.over)
-E_MSY.over
-
+E_MSY.over <- Y_MSY.over/q/N_MSY.over
 ```
 
 Now that you're done, check your results by making a graph of population change due to biology (in black) and economics (in blue) as a function of population size.  
@@ -773,7 +750,7 @@ Fill in the axis blanks.
 ###################################
 # 1. biology
 ###################################
-plot(x = Nset, y = growth.over, 
+plot(x = Nset, y = dNdt.over, 
      type = 'l', 
      lwd = 2, 
      las = 1, 
@@ -784,7 +761,7 @@ abline(h = 0)
 ###################################
 # 2. economics
 ###################################
-lines(x = Nset, y = q*E_MSY.over*Nset, #Y=qEN 
+lines(x = Nset, y = q*E_MSY.over*Nset, 
       lwd = 2,
       col = 'royalblue2')
 
@@ -802,12 +779,11 @@ points(x = N_MSY.over, y = Y_MSY.over,
 ###################################
 # 4. legend
 ###################################
-legend(x = 80, y = Y_MSY.over, 
+legend(x = K*.6, y = Y_MSY.over, 
        legend = c('growth', 'harvest', 'unstable equil.', 'stable equil.'), 
        lwd = c(2, 2, NaN, NaN), 
        pch = c(NaN, NaN, 21, 21), 
        pt.cex = 1.5, 
-       cex = 0.8,
        pt.bg = c('white', 'white', 'white', 'black'), 
        col = c('black', 'royalblue2', 'black', 'black'))
 ```
@@ -848,9 +824,8 @@ plot(x = tset, y = N.simu.over,
 Compare the outputs of each method. Are they similar?
 ```{r}
 #compare
-N.simu.over[length(tset)]#i want the last value
+N.simu.over[length(tset)]
 N_MSY.over
-#both methods worked under this over compensating population
 ```
 
 
@@ -965,21 +940,16 @@ Y_MSY.dep <- max(dNdt.dep)
 
 Then, find the population size at which this maximum yield occurs using a `for()` loop.
 ```{r}
-# annotate the for() loop
-for(i in 1:length(Nset)){ #look over the Nset
-  if(dNdt.dep[i] == Y_MSY.dep){ # when the dndt.over is equal to Ymsy.dep then we have found the max
-    N_MSY.dep <- Nset[i] #store that value and store as the N_msy.dep 
+for(i in 1:length(Nset)){
+  if(dNdt.dep[i] == Y_MSY.dep){
+    N_MSY.dep <- Nset[i]
   }
 }
-
-N_MSY.dep
 ```
 
 Lastly, calculate effort given your values for `Y_MSY.dep` and `N_MSY.dep`. Recall that $Y = qEN$. Name this `E_MSY.dep`.
 ```{r}
-E_MSY.dep <- Y_MSY.dep/(q*N_MSY.dep)
-E_MSY.dep
-
+E_MSY.dep <- Y_MSY.dep/q/N_MSY.dep
 ```
 
 Again, we're going to create a new vector called `growth.dep` that will be the same as `dNdt.dep`.
@@ -993,7 +963,7 @@ Now that you're done, check your results by making a graph of population change 
 #################################
 # 1. biology
 #################################
-plot(x = Nset, y = growth.dep, 
+plot(x = Nset, y = dNdt.dep, 
      type = 'l',
      lwd = 2, 
      las = 1, 
@@ -1003,7 +973,7 @@ abline(h = 0)
 #################################
 # 2. economics
 #################################
-lines(x = Nset, y = q*E_MSY.dep*Nset, #Y=qEN, 
+lines(x = Nset, y = q*E_MSY.dep*Nset, 
       lwd = 2,
       col = 'royalblue2')
 
@@ -1111,7 +1081,7 @@ N0.up <- N_star_unstable + 0.1
 N0.down <- N_star_unstable - 0.1
 
 # fill in initial conditions
-N.simu.dep[1] <- N0.up # try the different N0 values defined above here
+N.simu.dep[1] <- N0.up
 
 
 
@@ -1279,7 +1249,7 @@ legend(x = 0, y = -0.5, # Position the legend at coordinates (0, -0.5)
 ```
 
 
- /1 point for logistic growth line  
+/1 point for logistic growth line  
  /1 point for harvest line at MSY  
  /1 point for stable/unstable equilibria  
  /1 point for legend  
@@ -1357,8 +1327,9 @@ legend(x = 80, y = Y_MSY.over,  # Position the legend at coordinates (80, Y_MSY.
        col = c('black', 'royalblue2', 'black', 'black')) # Set colors for lines and points in the legend
 
 ```
-    
- /1 point for overcompensating stock line  
+
+
+/1 point for overcompensating stock line  
  /1 point for harvest line at MSY  
  /1 point for stable/unstable equilibria  
  /1 point for legend  
@@ -1371,12 +1342,13 @@ legend(x = 80, y = Y_MSY.over,  # Position the legend at coordinates (80, Y_MSY.
 Y_MSY.over <- max(dNdt.over) #Y_MSY is the max of our dndt.over function
 Y_MSY.over #print
 
-for (i in 1:length(Nset)) { # Loop through each index of the vector Nset
-  if (!is.na(dNdt.over[i]) && dNdt.over[i] == Y_MSY.over) {  # Check if dNdt.over[i] is not NA AND equals Y_MSY.over
-    N_MSY.over <- Nset[i]  # If the condition is true, store the corresponding Nset value as N_MSY.over
-  }  
+# annotate the for() loop
+for(i in 1:length(Nset)){ #
+  if(dNdt.over[i] == Y_MSY.over){ #
+    N_MSY1.over <- Nset[i] #
+  }
 }
-N_MSY.over
+N_MSY.over1
 
 E_MSY.over <- Y_MSY.over/(q*N_MSY.over)
 E_MSY.over
@@ -1443,7 +1415,7 @@ legend(x = 0, y = -1, # Position the legend at coordinates (0, -1)
 
 ```
 
- /1 point for depensating stock line  
+/1 point for depensating stock line  
  /1 point for harvest line at MSY  
  /1 point for stable equilibrium  
  /1 point for unstable equilibrium  
@@ -1458,13 +1430,12 @@ legend(x = 0, y = -1, # Position the legend at coordinates (0, -1)
 Y_MSY.dep <- max(dNdt.dep) #Y_MSY.dep is the max of our dndt function
 Y_MSY.dep #print
 
-#for(i in 1:length(Nset)){ #look over the Nset
-#  if(dNdt.dep[i] == Y_MSY.dep){ # when the dndt.over is equal to Ymsy.dep then we have found the max
-#    N_MSY.dep <- Nset[i] #store that value and store as the N_msy.dep 
-#  }
-#}
+for(i in 1:length(Nset)){ #look over the Nset
+  if(dNdt.dep[i] == Y_MSY.dep){ # when the dndt.over is equal to Ymsy.dep then we have found the max
+    N_MSY.dep <- Nset[i] #store that value and store as the N_msy.dep 
+  }
+}
 N_MSY.dep #print
-#this should be 42 (it is in my lab portion, but it doesn't print properly here)
 
 E_MSY.dep <- Y_MSY.dep/(q*N_MSY.dep) #E_MSY.dep is Y_MSY/ (q times N_MSY)
 E_MSY.dep #print
@@ -1539,7 +1510,8 @@ legend(x = 0, y = -1, # Position the legend at coordinates (0, -1)
 
 ```
 
- /1 point for population trajectory 1  
+
+/1 point for population trajectory 1  
  /1 point for population trajectory 2  
  /1 point for legend  
  /1 point for axes (N vs t)  
@@ -1547,7 +1519,7 @@ legend(x = 0, y = -1, # Position the legend at coordinates (0, -1)
  
 ### v. If you were a manager of this stock, what would you be worried about? How might you try to avoid that problem?  
 
-I would be worried about being at the unstable equilibrium. I would avoid the problem by extensively modeling and being aware that I am actually at the maximum of our population growth curve.
+I would be worried about being at the unstable equilibrium. I would avoid the problem byby extensively modeling and being aware that I am not at the maximum of our population growth curve.
 
 = /2 points total  
 
@@ -1683,3 +1655,7 @@ legend(x = 0, y = -1, # Position the legend at coordinates (0, -1)
  /2 points for E_MSY comparison across logistic, overcompensating, depensating and subsidized stocks  
  = /4 points total  
 
+
+```{r}
+
+```
