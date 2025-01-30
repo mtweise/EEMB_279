@@ -744,19 +744,26 @@ Y_MSY.over <- max(dNdt.over) #keep an eye out for Caitlan's explanation as to wh
 Then, find the population size at which this maximum yield occurs.
 ```{r}
 # annotate the for() loop
-for(i in 1:length(Nset)){ #look over the Nset
-  if(dNdt.over[i] == Y_MSY.over){ # when the dndt.over is equal to Ymsy.over then we have found the max
-    N_MSY.over <- Nset[i] #store that value and store as teh N_msy over 
+#for(i in 1:length(Nset)){ #look over the Nset
+#  if(dNdt.over[i] == Y_MSY.over){ # when the dndt.over is equal to Ymsy.over then we have found the max
+#    N_MSY.over <- Nset[i] #store that value and store as teh N_msy over 
+ # }
+#}
+
+#N_MSY.over
+# annotate the for() loop
+for(i in 1:length(Nset)){ #
+  if(dNdt.over[i] == Y_MSY.over){ #
+    N_MSY.over <- Nset[i] #
   }
 }
-
 N_MSY.over
 ```
 
 Lastly, calculate effort given your values for `Y_MSY.over` and `N_MSY.over`. Recall that $Y = qEN$. Name this value `E_MSY.over`.
 ```{r}
-E_MSY.over <- Y_MSY.over/(q*N_MSY.over)
-E_MSY.over
+#E_MSY.over <- Y_MSY.over/(q*N_MSY.over)
+#E_MSY.over
 
 ```
 
@@ -1371,14 +1378,15 @@ legend(x = 80, y = Y_MSY.over,  # Position the legend at coordinates (80, Y_MSY.
 Y_MSY.over <- max(dNdt.over) #Y_MSY is the max of our dndt.over function
 Y_MSY.over #print
 
-for (i in 1:length(Nset)) { # Loop through each index of the vector Nset
-  if (!is.na(dNdt.over[i]) && dNdt.over[i] == Y_MSY.over) {  # Check if dNdt.over[i] is not NA AND equals Y_MSY.over
-    N_MSY.over <- Nset[i]  # If the condition is true, store the corresponding Nset value as N_MSY.over
-  }  
-}
-N_MSY.over
+#for(i in 1:length(Nset)){ #Loop through each index of the vector Nset
+#  if(dNdt.over[i] == Y_MSY.over){ # Check if dNdt.over[i] equals Y_MSY.over
+#    N_MSY.over <- Nset[i] # If the condition is true, store the corresponding Nset value as N_MSY.over
+#  }
+#}
+N_MSY.over #print
 
-E_MSY.over <- Y_MSY.over/(q*N_MSY.over)
+
+E_MSY.over <- Y_MSY.over/(q*N_MSY.over) #E_MSY is Y_MSY divided by q times N_MSY
 E_MSY.over
 
 ```
@@ -1395,6 +1403,7 @@ E_MSY.over
 ```{r}
 ############################
 # 1. biology
+growth.dep <- dNdt.dep
 ############################
 plot(x = Nset, y = growth.dep, # Create a line plot with Nset on the x-axis and growth.dep on the y-axis
      type = 'l', # Use a line plot 
@@ -1478,7 +1487,7 @@ E_MSY.dep #print
  
 ### iii. At what population size does this model exhibit a 'tipping point'? What are the two alternative states it might exhibit?  
 
-**Write answer here**
+The population experiences a tipping point at the unstable equilibrium point (approximately when N=38). The alternative states it could exhibit is either a population increase towards the stable equilibrium state or a population decrease towards the "trivial" equilibrium state at 0 (aka a population crash).
 
  /1 point for 'tipping point' population size  
  /1 point first alternative state  
@@ -1489,53 +1498,42 @@ E_MSY.dep #print
 ### iv. Provide a graph of population trajectories (using different initial population sizes) that illustrates this tipping point. Hint: Your graph should have multiple population trajectories on it, and you will need a legend that indicates the N0 values corresponding to each.  
 
 ```{r}
-############################
-# 1. biology
-############################
-plot(x = Nset, y = growth.dep, # Create a line plot with Nset on the x-axis and growth.dep on the y-axis
-     type = 'l', # Use a line plot 
-     lwd = 2,  # Set the line width to 2 for better visibility
-     las = 1, # Rotate axis labels to be horizontal
-     xlab = 'N', # Label the x-axis as 'N'
-     ylab = 'Change in Population') # Label the y-axis as 'Change in Population'
-abline(h = 0)# Draw a horizontal line at y = 0 to represent equilibrium
+###################################
+# 1. Plot N as a function of time
+###################################
 
-############################
-# 2. economics
-############################
-lines(x = Nset, y = q*E_MSY.dep*Nset,  # Add a line plot showing harvest as a function of Nset (Y = qEN)
-      lwd = 2, # Set the line width to 2
-      col = 'royalblue2') # Set the line color to royal blue
+plot(tset, N.simu.dep,  # Plot population size (N) over time (tset)
+     type = 'l',  # Use a line plot
+     ylim = c(0, K),  # Set y-axis limits between 0 and carrying capacity (K)
+     las = 1,  # Make y-axis labels horizontal
+     lwd = 2,  # Set line width for better visibility
+     xlab = 'Time', ylab = 'Population Size')  # Label x-axis and y-axis
 
-############################
-# 3. equilibria
-############################
-# stable
-points(x = 0, y = 0, # Plot a point at (0, 0), representing a stable equilibrium
-       pch = 21, # Use a point style with a border and optional fill
-       cex = 1.5, # Set the size of the point to 1.5
-       bg = 'black') # Fill the point with black to indicate stability
-points(x = N_MSY.dep, y = Y_MSY.dep,   # Plot a point at (N_MSY.dep, Y_MSY.dep)
-       pch = 21,  # Use the same point style
-       cex = 1.5,# Set the size of the point to 1.5
-       bg = 'black') # Fill the point with black to indicate stability
+#################################################
+# 2. Add lines for different initial conditions
+#################################################
 
-# unstable
-points(x = N_star_unstable, y = Y.unstable.dep, # Plot a point at (N_star_unstable, Y.unstable.dep)
-       pch = 21, # Use the same point style
-       cex = 1.5,  # Set the size of the point to 1.5
-       bg = 'white')  # Fill the point with white to indicate instability
+lines(tset, N.simu.dep.low,  # Add a line for initial population N0 = 2
+      col = 'paleturquoise3',  # Set line color
+      lwd = 2)  # Set line width
 
-############################
-# 4. legend
-############################
-legend(x = 0, y = -1, # Position the legend at coordinates (0, -1)
-       legend = c('growth', 'harvest', 'unstable equil.', 'stable equil.'), # Define labels for the legend
-       lwd = c(2, 2, NaN, NaN), # Set line widths for applicable legend entries (NaN for no line)
-       pch = c(NaN, NaN, 21, 21), # Set point styles for applicable entries (NaN for no point)
-       pt.cex = 1.5, # Set the size of the points in the legend to 1.5
-       pt.bg = c('white', 'white', 'white', 'black'), # Set background colors for points in the legend
-       col = c('black', 'royalblue2', 'black', 'black')) # Set colors for lines and points in the legend
+lines(tset, N.simu.dep.high,  # Add a line for initial population N0 = 33
+      col = 'peachpuff3',  # Set line color
+      lwd = 2)  # Set line width
+
+lines(tset, N.simu.dep.100,  # Add a line for initial population N0 = 100
+      col = 'coral2',  # Set line color
+      lwd = 2)  # Set line width
+
+###################################
+# 3. Legend
+###################################
+
+legend(x = max(tset)*.6, y = K,  # Position the legend at 60% of the time range
+       lwd = 2,  # Match line width to the plot lines
+       legend = c('N0=2', 'N0=33', 'N0=34', 'N0=100'),  # Define legend labels for each initial population
+       col = c('black', 'paleturquoise3', 'peachpuff3', 'coral2'),  # Match legend colors to plotted lines
+       horiz = FALSE)  # Keep the legend items in a vertical layout
 
 ```
 
@@ -1547,7 +1545,7 @@ legend(x = 0, y = -1, # Position the legend at coordinates (0, -1)
  
 ### v. If you were a manager of this stock, what would you be worried about? How might you try to avoid that problem?  
 
-I would be worried about being at the unstable equilibrium. I would avoid the problem by extensively modeling and being aware that I am actually at the maximum of our population growth curve.
+I would be worried about being at the unstable equilibrium (N=38). I would avoid the problem by extensively modeling and being aware of how to population rate of change is tending towards through time. 
 
 = /2 points total  
 
@@ -1566,9 +1564,14 @@ Let's continue to use the parameters $r = 0.5$ and $K = 100$. Let's further set 
 r = 0.5 
 K = 100
 M = 10
-growth.sub <-  r*N*(1-{N/K}) - q*E*N + M
 
-dndt.sub <- r*N*(1-{N-K}) - q*E*N + M
+growth.sub <- (r*Nset*(1-Nset/K) + M)
+growth.sub
+harvest.sub <- q*(E_MSY)*Nset
+harvest.sub
+
+dndt.sub <- r * Nset * (1 - (Nset / K)) - q * E * Nset + M
+dndt.sub
 
 Y_MSY.sub <- max(dndt.sub)
 Y_MSY.sub
@@ -1584,51 +1587,35 @@ N_MSY.sub
 E_MSY.sub <- Y_MSY.sub/q/N_MSY.sub
 E_MSY.sub
 
+dNdt.log <- r * Nset * (1-Nset/K)
+############################################
+# 1. plot the biology of logistic growth
+############################################
+# plot the biology in black
+plot(x = Nset, y = growth.sub, 
+     type = 'l', 
+     las = 1, 
+     lwd = 2, 
+     xlab = 'N', ylab = 'Population Change',
+     xlim = c(0, max(Nset) * 1.2),  # Expands the x-axis range
+     ylim = c(min(growth.sub) * 1.2, max(growth.sub) * 1.2) )
 
-plot(x = Nset, y = growth.sub, # Create a line plot with Nset on the x-axis and growth.sub on the y-axis
-     type = 'l', # Use a line plot 
-     lwd = 2,  # Set the line width to 2 for better visibility
-     las = 1, # Rotate axis labels to be horizontal
-     xlab = 'N', # Label the x-axis as 'N'
-     ylab = 'Change in Population') # Label the y-axis as 'Change in Population'
-abline(h = 0)# Draw a horizontal line at y = 0 to represent equilibrium
+# plot the x-axis so that it's easier to see the intercept
+abline(h = 0, lwd = 1)
 
-############################
-# 2. economics
-############################
-lines(x = Nset, y = q*E_MSY.sub*Nset,  # Add a line plot showing harvest as a function of Nset (Y = qEN)
-      lwd = 2, # Set the line width to 2
-      col = 'royalblue2') # Set the line color to royal blue
+############################################
+# 2. plot the economics of harvest
+############################################
+# plot the economics in blue
+lines(x = Nset, y = harvest.sub, col = 'royalblue2', lwd = 2)
 
-############################
-# 3. equilibria
-############################
-# stable
-points(x = 0, y = 0, # Plot a point at (0, 0), representing a stable equilibrium
-       pch = 21, # Use a point style with a border and optional fill
-       cex = 1.5, # Set the size of the point to 1.5
-       bg = 'black') # Fill the point with black to indicate stability
-points(x = N_MSY.sub, y = Y_MSY.sub,   # Plot a point at (N_MSY.dep, Y_MSY.dep)
-       pch = 21,  # Use the same point style
-       cex = 1.5,# Set the size of the point to 1.5
-       bg = 'black') # Fill the point with black to indicate stability
-
-# unstable
-points(x = N_star_unstable, y = Y.unstable.sub, # Plot a point at (N_star_unstable, Y.unstable.dep)
-       pch = 21, # Use the same point style
-       cex = 1.5,  # Set the size of the point to 1.5
-       bg = 'white')  # Fill the point with white to indicate instability
-
-############################
-# 4. legend
-############################
-legend(x = 0, y = -1, # Position the legend at coordinates (0, -1)
-       legend = c('growth', 'harvest', 'unstable equil.', 'stable equil.'), # Define labels for the legend
-       lwd = c(2, 2, NaN, NaN), # Set line widths for applicable legend entries (NaN for no line)
-       pch = c(NaN, NaN, 21, 21), # Set point styles for applicable entries (NaN for no point)
-       pt.cex = 1.5, # Set the size of the points in the legend to 1.5
-       pt.bg = c('white', 'white', 'white', 'black'), # Set background colors for points in the legend
-       co
+############################################
+# 3. create a legend
+############################################
+legend("topright", 
+       lwd = c(2, 2), 
+       legend = c('growth', 'harvest'), 
+       col = c('black', 'royalblue2'))
 ```
 
  /1 point for subsidized stock line  
@@ -1639,14 +1626,27 @@ legend(x = 0, y = -1, # Position the legend at coordinates (0, -1)
  
 ### ii. Does this effort level still yield the maximum sustainable yield?  
 
-**Write answer here**
+No it does not
 
  = /1 point total   
  
 ### iii. If not, adjust effort and report your new E_MSY, N_MSY, and Y_MSY.  
 
 ```{r}
-## answer here
+Y_MSY.sub <- max(dndt.sub)
+Y_MSY.sub
+
+for (i in 1:length(Nset)) {
+  if (!is.na(dndt.sub[i]) && dndt.sub[i] == Y_MSY.sub) {
+    N_MSY.sub <- Nset[i]
+  }
+}
+
+N_MSY.sub
+
+
+E_MSY.sub <- Y_MSY.sub/q/N_MSY.sub
+E_MSY.sub
 ```
 
  /1 point for N_MSY.sub  
@@ -1657,7 +1657,38 @@ legend(x = 0, y = -1, # Position the legend at coordinates (0, -1)
 ### iv. Make a new version of your graph from part (i), but using your new E_MSY.  
 
 ```{r}
-## answer here
+
+
+harvest.sub1 <- q*(E_MSY.sub)*Nset
+harvest.sub1
+############################################
+# 1. plot the biology of logistic growth
+############################################
+# plot the biology in black
+plot(x = Nset, y = growth.sub, 
+     type = 'l', 
+     las = 1, 
+     lwd = 2, 
+     xlab = 'N', ylab = 'Population Change',
+     xlim = c(0, max(Nset) * 1.2),  # Expands the x-axis range
+     ylim = c(min(growth.sub) * 1.2, max(growth.sub) * 1.2) )
+
+# plot the x-axis so that it's easier to see the intercept
+abline(h = 0, lwd = 1)
+
+############################################
+# 2. plot the economics of harvest
+############################################
+# plot the economics in blue
+lines(x = Nset, y = harvest.sub1, col = 'royalblue2', lwd = 2)
+
+############################################
+# 3. create a legend
+############################################
+legend("topright", 
+       lwd = c(2, 2), 
+       legend = c('growth', 'harvest'), 
+       col = c('black', 'royalblue2'))
 ```
   
  /1 point for subsidized stock line  
@@ -1670,14 +1701,23 @@ legend(x = 0, y = -1, # Position the legend at coordinates (0, -1)
   
 ### v. Explain how having the nearby reserve affected the fishery you are managing.  
 
-**Write answer here**
+Our E_MSY was suddenly at a smaller population size. Effort increased.
 
  = /2 points total   
 
 
 ## 5. Comparison across stocks: Compare N_MSY and E_MSY for the four stocks you've studied in this lab. Explain, biologically, why any differences exist.  
 
-**Write answer here**
+```{r}
+E_MSY
+E_MSY.dep
+E_MSY.over
+E_MSY.sub
+```
+Stocks experiencing higher fishing effort (E) or higher catchability (q) may have a reduced N_MSY.
+If a fishery is over-exploited, its N_MSY may decline compared to an unfished or lightly fished stock. N_MSY was largest for depensating stocks and smallest for subsidized stocks.
+
+E_MSY was highest for the overcompensating stock and lowest for the depensating stock. Overcompensating stocks exhibit density-dependent growth, meaning that as population size decreases, individual survival and reproduction increase significantly. Because of this strong compensatory response, a higher fishing effort is required to reach the point where yield is maximized
 
  /2 points for N_MSY comparison across logistic, overcompensating, depensating and subsidized stocks  
  /2 points for E_MSY comparison across logistic, overcompensating, depensating and subsidized stocks  
