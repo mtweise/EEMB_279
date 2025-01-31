@@ -772,6 +772,9 @@ Now that you're done, check your results by making a graph of population change 
 As we did before, we'll create a new vector for `growth.over` to indicate population growth in an overcompensating population. It'll be the same as `dNdt.over`, just renamed so that we can keep things straight with the axes.
 ```{r}
 growth.over <- dNdt.over
+
+E_MSY.over <- Y_MSY.over/(q*N_MSY.over) #E_MSY is Y_MSY divided by q times N_MSY
+E_MSY.over
 ```
 
 
