@@ -851,17 +851,209 @@ If you are interested in coding more advanced simulations of disease spread, che
 ###########################################################
 # 1a. With a black line: beta = 0.01, gamma = 0.1, p = 0 #
 ###########################################################
+# population size
+N_hw1 <- 100
 
+beta1a <- 0.01   # infection rate
+gamma1a <- 0.1  # recovery rate
+p1a <- 0
+
+# initial infected individual
+I0a <- 1		
+
+# starting number of susceptibles
+S0_hw1 <- N_hw1 - I0a	
+
+# starting number of recovered individuals
+R0_hw1 <- 0 
+
+# time steps
+tset <- seq(from = 0, to = 60, length.out = 20000) # sequence of timesteps from 0 to 60 with a length of 20000
+
+# holding vector for N (population size)
+N.hw1a <- NaN*tset # vector of the same length as tset that is filled with NaNs
+N.hw1a[1] <- N_hw1 # set the initial population size
+
+# holding vector for I (infected individuals)
+I.hw1a <- NaN*tset# vector of the same length as tset that is filled with NaNs
+I.hw1a[1] <- I0a # set the initial number of infected individuals
+
+# holding vector for S (susceptible individuals)
+S.hw1a <- NaN*tset # vector of the same length as tset that is filled with NaNs
+S.hw1a[1] <- S0_hw1 # set the initial number of susceptible individuals
+
+
+# for each element i from the second to the last
+for(i in 2:length(tset)){
+  # calculate change in time
+	dt <- tset[i]-tset[i-1] # change in time is the difference between the ith timepoint and the previous timepoint
+	
+	# assign S, I, and R
+	Sa <- S.hw1a[i-1] # susceptible individuals at previous timepoint
+	Ia <- I.hw1a[i-1] # infected individuals at previous timepoint
+	
+	# calculate change in size of each stage
+	dSa <- (-beta1a * Sa * Ia)*dt # change in number of susceptible individuals over the time interval dt
+	dIa <- (beta1a*Sa*Ia - gamma1a*Ia)*dt # change in number of infected individuals over the time interval dt
+	
+	# calculate total size of each stage and store in holding vector
+	S.hw1a[i] <- Sa + dSa # number of susceptible individuals at ith timepoint is equal to the number of susceptible individuals at the previous timepoint (remember we set S <- S.simu1[i-1]) plus the change in susceptible individuals over the time interval dt
+	I.hw1a[i] <- Ia + dIa # number of infected individuals at ith timepoint is equal to the number of infected individuals at the previous timepoint plus the change in infected individuals over the time interval dt
+}
+
+head(S.hw1a) # use head() to look at the first 6 elements of S.simu1
+tail(S.hw1a) # use tail() to look at the last 6 elements of S.simu1
 
 ##########################################################
 # 1b. With a blue line: beta = 0.05, gamma = 0.1, p = 0 #
 ##########################################################
+beta1b <- 0.05   # infection rate
+gamma1b <- 0.1  # recovery rate
+p1b <- 0
+   
+
+# initial infected individual
+I0b <- 1		
+
+# starting number of susceptibles
+S0_hw1 <- N_hw1 - I0b	
+
+# starting number of recovered individuals
+R0_hw1 <- 0 
+
+# time steps
+tset <- seq(from = 0, to = 60, length.out = 20000) # sequence of timesteps from 0 to 60 with a length of 20000
+
+# holding vector for N (population size)
+N.hw1b <- NaN*tset # vector of the same length as tset that is filled with NaNs
+N.hw1b[1] <- N_hw1 # set the initial population size
+
+# holding vector for I (infected individuals)
+I.hw1b <- NaN*tset# vector of the same length as tset that is filled with NaNs
+I.hw1b[1] <- I0b # set the initial number of infected individuals
+
+# holding vector for S (susceptible individuals)
+S.hw1b <- NaN*tset # vector of the same length as tset that is filled with NaNs
+S.hw1b[1] <- S0_hw1 # set the initial number of susceptible individuals
+
+
+# for each element i from the second to the last
+for(i in 2:length(tset)){
+  # calculate change in time
+	dt <- tset[i]-tset[i-1] # change in time is the difference between the ith timepoint and the previous timepoint
+	
+	# assign S, I, and R
+	Sb <- S.hw1b[i-1] # susceptible individuals at previous timepoint
+	Ib <- I.hw1b[i-1] # infected individuals at previous timepoint
+#	R <- R.simu1[i-1] # recovered individuals at previous timepoint
+	
+	# calculate change in size of each stage
+	dSb <- (-beta1b * Sb * Ib)*dt # change in number of susceptible individuals over the time interval dt
+	dIb <- (beta1b*Sb*Ib - gamma1b*Ib)*dt # change in number of infected individuals over the time interval dt
+#	dR <- (gamma * I)*dt # change in number of recovered individuals over the time interval dt
+#	dN <- dS+dI+dR  # change in population size over the time interval dt
+	
+	# calculate total size of each stage and store in holding vector
+	S.hw1b[i] <- Sb + dSb # number of susceptible individuals at ith timepoint is equal to the number of susceptible individuals at the previous timepoint (remember we set S <- S.simu1[i-1]) plus the change in susceptible individuals over the time interval dt
+	I.hw1b[i] <- Ib + dIb # number of infected individuals at ith timepoint is equal to the number of infected individuals at the previous timepoint plus the change in infected individuals over the time interval dt
+}
+
+head(S.hw1b) # use head() to look at the first 6 elements of S.simu1
+tail(S.hw1b) # use tail() to look at the last 6 elements of S.simu1
 
 
 ###########################################################
 # 1c. With a green line: beta = 0.01, gamma = 0.3, p = 0 #
 ###########################################################
 
+beta1c <- 0.01   # infection rate
+gamma1c <- 0.3  # recovery rate
+p1c <- 0
+   
+
+# initial infected individual
+I0c <- 1		
+
+# starting number of susceptibles
+S0_hw1 <- N_hw1 - I0c	
+
+# starting number of recovered individuals
+R0_hw1 <- 0 
+
+# time steps
+tset <- seq(from = 0, to = 60, length.out = 20000) # sequence of timesteps from 0 to 60 with a length of 20000
+
+# holding vector for N (population size)
+N.hw1c <- NaN*tset # vector of the same length as tset that is filled with NaNs
+N.hw1c[1] <- N_hw1 # set the initial population size
+
+# holding vector for I (infected individuals)
+I.hw1c <- NaN*tset# vector of the same length as tset that is filled with NaNs
+I.hw1c[1] <- I0c # set the initial number of infected individuals
+
+# holding vector for S (susceptible individuals)
+S.hw1c <- NaN*tset # vector of the same length as tset that is filled with NaNs
+S.hw1c[1] <- S0_hw1 # set the initial number of susceptible individuals
+
+
+# for each element i from the second to the last
+for(i in 2:length(tset)){
+  # calculate change in time
+	dt <- tset[i]-tset[i-1] # change in time is the difference between the ith timepoint and the previous timepoint
+	
+	# assign S, I, and R
+	Sc <- S.hw1c[i-1] # susceptible individuals at previous timepoint
+	Ic <- I.hw1c[i-1] # infected individuals at previous timepoint
+	
+	# calculate change in size of each stage
+	dSc <- (-beta1c * Sc * Ic)*dt # change in number of susceptible individuals over the time interval dt
+	dIc <- (beta1c*Sc*Ic - gamma1c*Ic)*dt # change in number of infected individuals over the time interval dt
+	
+	# calculate total size of each stage and store in holding vector
+	S.hw1c[i] <- Sc + dSc # number of susceptible individuals at ith timepoint is equal to the number of susceptible individuals at the previous timepoint (remember we set S <- S.simu1[i-1]) plus the change in susceptible individuals over the time interval dt
+	I.hw1c[i] <- Ic + dIc # number of infected individuals at ith timepoint is equal to the number of infected individuals at the previous timepoint plus the change in infected individuals over the time interval dt
+}
+
+head(S.hw1c) # use head() to look at the first 6 elements of S.simu1
+tail(S.hw1c) # use tail() to look at the last 6 elements of S.simu1
+
+
+
+
+
+
+
+
+Icola <- 'black' # color to use for plotting population size
+Icolb <- 'dodgerblue3' # color to use for plotting number of susceptible individuals
+Icolc <- 'forestgreen' # color to use for plotting number of infected individuals
+
+
+
+# plot N.simu1
+plot(x = tset, y = N.hw1a, # x-variable = time, y- variable = population size
+     type = 'l', # plot data as a line
+     col = Ncol, # use the color we assigned for population size
+     las = 1, # horizontal y-axis tick marks
+     lwd=2, # line thickness
+     xlab = 'Time', ylab = 'Number of Infected Individuals (I)', # x and y-axis labels
+     ylim = c(0,N*1.2)) # y-axis limits
+
+# add a horizontal line at 0
+abline(h = 0)
+
+# add lines showing the number of susceptibles, infected, and recovered individuals
+# plot infected individuals 
+lines(x = tset, y = I.hw1a, col = Icola, lwd = 2)# x = time, y = infected individuals, use the color we assigned for infected individuals, and specify line thickness with lwd
+lines(x = tset, y = I.hw1b, col = Icolb, lwd = 2)# x = time, y = infected individuals, use the color we assigned for infected individuals, and specify line thickness with lwd
+lines(x = tset, y = I.hw1c, col = Icolc, lwd = 2)# x = time, y = infected individuals, use the color we assigned for infected individuals, and specify line thickness with lwd
+
+# add a legend
+legend(x = max(tset)*0.1, y = N*1.2, # x and y locations of the legend
+       lwd = 2, # thickness of the lines in the legend
+       legend = c('1a', '1b', '1c'), # labels for the legend elements
+       col = c(Icola, Icolb, Icolc), # colors for the legend elements
+       horiz = TRUE) # arrange the legend elements in a row
 
 ```
 /1 point black line  
@@ -877,11 +1069,11 @@ If you are interested in coding more advanced simulations of disease spread, che
 
 ## 2a. What is the effect of decreasing infectiousness?
 
-**Write answer here (please be concise!):**
+**Decreasing infectiousness (beta) leads to less individuals getting infected and the peak of infection rates occurring later. **
 
 ## 2b. What is the effect of increasing recovery rates? 
 
-**Write answer here (please be concise!):**
+**Increasing recovery rate leads to a decrease in the number of individuals that gets infected, but the peak of infection occurs at the same time.**
 
 /2 points for the effect of decreasing infectiousness  
 /2 points for the effect of increasing infectiousness  
@@ -892,16 +1084,28 @@ If you are interested in coding more advanced simulations of disease spread, che
 3. Calculate R_0 for each of each of the disease scenarios in Question 1, assuming an initial susceptible population size $S = 100$. What vaccination proportion ($p$) for each would be required to prevent a disease outbreak?
 
 ```{r}
-# do work here
+R01a <- beta1a * N_hw1 / gamma1a# basic reproduction number of the disease
+p_crit1a <- 1 - 1/R01a # critical vaccination level that would prevent an epidemic: if R_V = 1, then 1 = R0(1-p), so 1/R0 = 1-p, so p = 1 - 1/R0
+p_crit1a 
+#0.9
 
-# output values here as well as writing them below
+R01b <- beta1b * N_hw1 / gamma1b# basic reproduction number of the disease
+p_crit1b <- 1 - 1/R01b # critical vaccination level that would prevent an epidemic: if R_V = 1, then 1 = R0(1-p), so 1/R0 = 1-p, so p = 1 - 1/R0
+p_crit1b 
+#0.98
+
+R01c <- beta1c * N_hw1 / gamma1c# basic reproduction number of the disease
+p_crit1c <- 1 - 1/R01c # critical vaccination level that would prevent an epidemic: if R_V = 1, then 1 = R0(1-p), so 1/R0 = 1-p, so p = 1 - 1/R0
+p_crit1c 
+#0.7
+
 ```
 
-**The vaccination proportion (p_crit) for the "black line" scenario 1 is: ____FILL IN HERE___**
+**The vaccination proportion (p_crit) for the "black line" scenario 1 is: ____0.9___**
 
-**The vaccination proportion (p_crit) for the "blue line" scenario 2 is: ____FILL IN HERE___**
+**The vaccination proportion (p_crit) for the "blue line" scenario 2 is: ____0.98___**
 
-**The vaccination proportion (p_crit) for the "green line" scenario 3 is: ____FILL IN HERE___**
+**The vaccination proportion (p_crit) for the "green line" scenario 3 is: ____0.7___**
 
 /2 points for work + answer for $p_{crit}$ scenario 1  
 /2 points for work + answer for $p_{crit}$ scenario 2  
@@ -917,18 +1121,156 @@ If you are interested in coding more advanced simulations of disease spread, che
 # Unvaccinated black line: beta = 0.01, gamma = 0.1, p = 0 #
 # Vaccinated blue line: beta = 0.01, gamma = 0.1, p = 0.9  #
 ############################################################
+# set initial conditions
+V1a <- N_hw1*p_crit1a   # set the number of vaccinated individuals equal to the critical number that would prevent an epidemic in this population
+S01a <- N_hw1 - V1a - I0a  # initial number of susceptible individuals = all individuals that are not vaccinated or initially infected
 
+# create holding vectors and fill with initial conditions
+N.4a <- NaN*tset; N.4a[1] <- N # holding vector for total population size at each timepoint, set initial value to the total population size N
+S.4a <- NaN*tset; S.4a[1] <- S01a # holding vector for number of susceptible individuals at each timepoint, set initial value to S0
+I.4a <- NaN*tset; I.4a[1] <- I0a # holding vector for number of infected individuals at each timepoint, set initial value to I0
+#R.simu4 <- NaN*tset; R.simu4[1] <- N - I0 - S0 - V3 # holding vector for number of recovered individuals at each timepoint, set initial value to the initial number of individuals that are not infected, susceptible, or vaccinated
+
+# for each element i from the second to the last
+for(i in 2:length(tset)){
+  # calculate change in time
+	dt <- tset[i]-tset[i-1] # change in time is the difference between the ith timepoint and the previous timepoint
+	
+	# assign S, I, and R
+	S4a <- S.4a[i-1] # susceptible individuals at previous timepoint
+	I4a <- I.4a[i-1] # infected individuals at previous timepoint
+#	R <- R.simu4[i-1] # recovered individuals at previous timepoint
+	
+	# calculate change in size of each stage
+	dS4a <- (-beta1a * Sa * Ia)*dt # change in number of susceptible individuals over the time interval dt
+	dI4a <- (beta1a*Sa*Ia - gamma1a*Ia)*dt # change in number of infected individuals over the time interval dt
+	dR4a <- (gamma1a * Ia)*dt # change in number of recovered individuals over the time interval dt
+#	dN <- dS+dI+dR  # change in population size over the time interval dt
+	
+	# calculate total size of each stage and store in holding vector
+	I.4a[i] <- Ia + dI4a # number of infected individuals at ith timepoint is equal to the number of infected 
+}
+
+head(I.4a)
+tail(I.4a)
+
+# plot infected individuals from unvaccinated population
+plot(x = tset, y = I.hw1a, # x = time, y = number of infected individuals from simulation with no vaccination
+     col = 'black', type = 'l', lwd = 2, las = 1, # plot aesthetics
+     xlab = 'Time', ylab = 'Incidence of Infected (I)',
+     main= 'Scenario A') # axis labels
+
+# plot infected individuals from vaccinated population
+lines(x = tset, y = I.4a, col = 'blue', lwd = 2)
+
+
+# add a legend
+legend(x = max(tset)*0.6, y = max(I.hw1a)*.9, # legend location
+       lwd = 2, # line thickness
+       legend = c('Unvacc.', 'Vaccinated'), # labels of legend elements
+       col = c('black', 'blue')) # colors of the legend elements
 
 ############################################################
 # Unvaccinated black line: beta = 0.05, gamma = 0.1, p = 0 #
 # Vaccinated blue line: beta = 0.05, gamma = 0.1, p = 0.98 #
 ############################################################
+# set initial conditions
+V1b <- N_hw1*p_crit1b   # set the number of vaccinated individuals equal to the critical number that would prevent an epidemic in this population
+S01b <- N_hw1 - V1b - I0b  # initial number of susceptible individuals = all individuals that are not vaccinated or initially infected
 
+# create holding vectors and fill with initial conditions
+N.4b <- NaN*tset; N.4b[1] <- N # holding vector for total population size at each timepoint, set initial value to the total population size N
+S.4b <- NaN*tset; S.4b[1] <- S01b # holding vector for number of susceptible individuals at each timepoint, set initial value to S0
+I.4b <- NaN*tset; I.4b[1] <- I0b # holding vector for number of infected individuals at each timepoint, set initial value to I0
+
+# for each element i from the second to the last
+for(i in 2:length(tset)){
+  # calculate change in time
+	dt <- tset[i]-tset[i-1] # change in time is the difference between the ith timepoint and the previous timepoint
+	
+	# assign S, I, and R
+	S4b <- S.4b[i-1] # susceptible individuals at previous timepoint
+	I4b <- I.4b[i-1] # infected individuals at previous timepoint
+	
+	# calculate change in size of each stage
+	dS4b <- (-beta1b * Sb * Ib)*dt # change in number of susceptible individuals over the time interval dt
+	dI4b <- (beta1b*Sb*Ib - gamma1b*Ib)*dt # change in number of infected individuals over the time interval dt
+	dR4b <- (gamma1b * Ib)*dt # change in number of recovered individuals over the time interval dt
+#	dN <- dS+dI+dR  # change in population size over the time interval dt
+	
+	# calculate total size of each stage and store in holding vector
+	I.4b[i] <- Ib + dI4b # number of infected individuals at ith timepoint is equal to the number of infected 
+}
+
+head(I.4b)
+tail(I.4b)
+
+# plot infected individuals from unvaccinated population
+plot(x = tset, y = I.hw1b, # x = time, y = number of infected individuals from simulation with no vaccination
+     col = 'black', type = 'l', lwd = 2, las = 1, # plot aesthetics
+     xlab = 'Time', ylab = 'Incidence of Infected (I)',
+     main= 'Scenario B') # axis labels
+
+# plot infected individuals from vaccinated population
+lines(x = tset, y = I.4b, col = 'blue', lwd = 2)
+
+
+# add a legend
+legend(x = max(tset)*0.6, y = max(I.hw1c)*.9, # legend location
+       lwd = 2, # line thickness
+       legend = c('Unvacc.', 'Vaccinated'), # labels of legend elements
+       col = c('black', 'blue')) # colors of the legend elements
 
 #############################################################
 # Unvaccinated black line: beta = 0.01, gamma = 0.3, p = 0  # 
 # Vaccinated green line: beta = 0.01, gamma = 0.3, p = 0.70 #
 #############################################################
+# set initial conditions
+V1c <- N_hw1*p_crit1c   # set the number of vaccinated individuals equal to the critical number that would prevent an epidemic in this population
+S01c <- N_hw1 - V1c - I0c  # initial number of susceptible individuals = all individuals that are not vaccinated or initially infected
+
+# create holding vectors and fill with initial conditions
+N.4c <- NaN*tset; N.4c[1] <- N # holding vector for total population size at each timepoint, set initial value to the total population size N
+S.4c <- NaN*tset; S.4c[1] <- S01c # holding vector for number of susceptible individuals at each timepoint, set initial value to S0
+I.4c <- NaN*tset; I.4c[1] <- I0c # holding vector for number of infected individuals at each timepoint, set initial value to I0
+
+# for each element i from the second to the last
+for(i in 2:length(tset)){
+  # calculate change in time
+	dt <- tset[i]-tset[i-1] # change in time is the difference between the ith timepoint and the previous timepoint
+	
+	# assign S, I, and R
+	S4c <- S.4c[i-1] # susceptible individuals at previous timepoint
+	I4c <- I.4c[i-1] # infected individuals at previous timepoint
+	
+	# calculate change in size of each stage
+	dS4c <- (-beta1c * Sc * Ic)*dt # change in number of susceptible individuals over the time interval dt
+	dI4c <- (beta1c*Sc*Ic - gamma1c*Ic)*dt # change in number of infected individuals over the time interval dt
+	dR4c <- (gamma1c * Ic)*dt # change in number of recovered individuals over the time interval dt
+#	dN <- dS+dI+dR  # change in population size over the time interval dt
+	
+	# calculate total size of each stage and store in holding vector
+	I.4c[i] <- Ic + dI4c # number of infected individuals at ith timepoint is equal to the number of infected 
+}
+
+head(I.4c)
+tail(I.4c)
+
+# plot infected individuals from unvaccinated population
+plot(x = tset, y = I.hw1c, # x = time, y = number of infected individuals from simulation with no vaccination
+     col = 'black', type = 'l', lwd = 2, las = 1, # plot aesthetics
+     xlab = 'Time', ylab = 'Incidence of Infected (I)',
+     main= 'Scenario C') # axis labels
+
+# plot infected individuals from vaccinated population
+lines(x = tset, y = I.4c, col = 'blue', lwd = 2)
+
+
+# add a legend
+legend(x = max(tset)*0.6, y = max(I.hw1c)*.9, # legend location
+       lwd = 2, # line thickness
+       legend = c('Unvacc.', 'Vaccinated'), # labels of legend elements
+       col = c('black', 'blue')) # colors of the legend elements
 
 
 
