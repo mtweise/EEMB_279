@@ -901,8 +901,8 @@ for(i in 2:length(tset)){
 	I.hw1a[i] <- Ia + dIa # number of infected individuals at ith timepoint is equal to the number of infected individuals at the previous timepoint plus the change in infected individuals over the time interval dt
 }
 
-head(S.hw1a) # use head() to look at the first 6 elements of S.simu1
-tail(S.hw1a) # use tail() to look at the last 6 elements of S.simu1
+head(S.hw1a) # use head() to look at the first 6 elements
+tail(S.hw1a) # use tail() to look at the last 6 elements
 
 ##########################################################
 # 1b. With a blue line: beta = 0.05, gamma = 0.1, p = 0 #
@@ -1305,11 +1305,24 @@ $$
 ## 5a: Infectiousness
 
 ```{r}
-# work here
+# create a vector of values of beta over which to calculate R0
+beta_set <- seq(from = 0.001, to = 0.1, length.out = 100) # sequence from 0.001 to 0.1 with a total length of 100
+
+# calculate R0 for each value of beta
+R0_set <- beta_set*N/gamma # R0 = beta*N/gamma
+
+# calculate p_crit for each value of R0
+p_crit_set <- 1 - 1/R0_set  # p_crit = 1 - 1/R0
 
 # plot of $R_0$ (y-axis) vs. Infectiousness (x-axis)
+plot(x = beta_set, y = R0_set, # x = infectiousness, y = basic reproductive number for each value of infectiousness
+     type = 'l', las = 1, lwd = 2, # plot aesthetics
+     xlab = 'Infectiousness (beta)', ylab = 'Basic Reproductive Number (R_0)') # axis labels
 
 # plot of $p$ (y-axis) vs. Infectiousness (x-axis)
+plot(x = beta_set, y = p_crit_set, # x = infectiousness, y = critical vaccination rate needed to prevent an epidemic for each value of infectiousness
+     type = 'l', las = 1, lwd = 2, # plot aesthetics
+     xlab = 'Infectiousness (beta)', ylab = 'Critical Vaccination Rate (p_crit)') # plot labels
 
 ```
 
@@ -1320,11 +1333,25 @@ explain the shapes of the graphs based on the biology of disease spread
 ## 5b: Recovery time
 
 ```{r}
-# work here
+# create a vector of values of beta over which to calculate R0
+gamma_set <- seq(from = 0.001, to = 0.1, length.out = 100) # sequence from 0.001 to 0.1 with a total length of 100
+
+# calculate R0 for each value of beta
+R0_set.gamma <- beta*N/gamma_set # R0 = beta*N/gamma
+
+# calculate p_crit for each value of R0
+p_crit_set.gamma <- 1 - 1/R0_set.gamma  # p_crit = 1 - 1/R0
+
 
 # plot of $R_0$ (y-axis) vs. Recovery time (x-axis)
+plot(x = gamma_set, y = R0_set.gamma, # x = recovery, y = basic reproductive number for each value of recovery time
+     type = 'l', las = 1, lwd = 2, # plot aesthetics
+     xlab = 'Recovery Time (gamma)', ylab = 'Basic Reproductive Number (R_0)') # axis labels
 
 # plot of $p$ (y-axis) vs. Recovery time (x-axis)
+plot(x = gamma_set, y = p_crit_set.gamma, # x = recovery, y = critical vaccination rate needed to prevent an epidemic for each value of infectiousness
+     type = 'l', las = 1, lwd = 2, # plot aesthetics
+     xlab = 'Recovery Time (gamma)', ylab = 'Critical Vaccination Rate (p_crit)') # plot labels
 
 ```
 
@@ -1338,8 +1365,24 @@ explain the shapes of the graphs based on the biology of disease spread
 # work here
 
 # plot of $R_0$ (y-axis) vs. population size (x-axis)
+# create a vector of values for N over which to calculate R0
+Nset.N <- seq(from = 0, to = 100, length.out = 100) # sequence from 1 to 100 with a total length of 100
+
+# calculate R0 for each value of N
+R0_set.N <- beta*Nset.N/gamma # R0 = beta*N/gamma
+
+# calculate p_crit for each value of R0
+p_crit_set.N <- 1 - 1/R0_set.N  # p_crit = 1 - 1/R0
+
+# plot R0 as a function of N
+plot(x = Nset.N, y = R0_set.N, # x = total population size, y = basic reproductive number for each population size
+     type = 'l', las = 1, lwd = 2, # plot aesthetics
+     xlab = 'Population size (N)', ylab = 'Basic Reproductive Number (R_0)') # axis labels
 
 # plot of $p$ (y-axis) vs. population size (x-axis)
+plot(x = Nset.N, y = p_crit_set.N, # x = infectiousness, y = p crit
+     type = 'l', las = 1, lwd = 2, # plot aesthetics
+     xlab = 'Population size (N)', ylab = 'Critical Vaccination Rate (p_crit)') # plot labels
 
 ```
 
