@@ -856,7 +856,7 @@ N_hw1 <- 100
 
 beta1a <- 0.01   # infection rate
 gamma1a <- 0.1  # recovery rate
-p1a <- 0
+p1a <- 0 #vaccination rate
 
 # initial infected individual
 I0a <- 1		
@@ -958,8 +958,8 @@ for(i in 2:length(tset)){
 	I.hw1b[i] <- Ib + dIb # number of infected individuals at ith timepoint is equal to the number of infected individuals at the previous timepoint plus the change in infected individuals over the time interval dt
 }
 
-head(S.hw1b) # use head() to look at the first 6 elements of S.simu1
-tail(S.hw1b) # use tail() to look at the last 6 elements of S.simu1
+head(S.hw1b) # use head() to look at the first 6 elements
+tail(S.hw1b) # use tail() to look at the last 6 elements
 
 
 ###########################################################
@@ -968,7 +968,7 @@ tail(S.hw1b) # use tail() to look at the last 6 elements of S.simu1
 
 beta1c <- 0.01   # infection rate
 gamma1c <- 0.3  # recovery rate
-p1c <- 0
+p1c <- 0 #vaccination rate
    
 
 # initial infected individual
@@ -1014,23 +1014,18 @@ for(i in 2:length(tset)){
 	I.hw1c[i] <- Ic + dIc # number of infected individuals at ith timepoint is equal to the number of infected individuals at the previous timepoint plus the change in infected individuals over the time interval dt
 }
 
-head(S.hw1c) # use head() to look at the first 6 elements of S.simu1
-tail(S.hw1c) # use tail() to look at the last 6 elements of S.simu1
+head(S.hw1c) # use head() to look at the first 6 elements of 
+tail(S.hw1c) # use tail() to look at the last 6 elements of 
 
 
 
 
+Icola <- 'black' # color to use for a
+Icolb <- 'dodgerblue3' # color to use for plotting b
+Icolc <- 'forestgreen' # color to use for plotting c
 
 
-
-
-Icola <- 'black' # color to use for plotting population size
-Icolb <- 'dodgerblue3' # color to use for plotting number of susceptible individuals
-Icolc <- 'forestgreen' # color to use for plotting number of infected individuals
-
-
-
-# plot N.simu1
+# plot N.hw1a
 plot(x = tset, y = N.hw1a, # x-variable = time, y- variable = population size
      type = 'l', # plot data as a line
      col = Ncol, # use the color we assigned for population size
@@ -1084,7 +1079,7 @@ legend(x = max(tset)*0.1, y = N*1.2, # x and y locations of the legend
 3. Calculate R_0 for each of each of the disease scenarios in Question 1, assuming an initial susceptible population size $S = 100$. What vaccination proportion ($p$) for each would be required to prevent a disease outbreak?
 
 ```{r}
-R01a <- beta1a * N_hw1 / gamma1a# basic reproduction number of the disease
+R01a <- beta1a * N_hw1 / gamma1a # basic reproduction number of the disease
 p_crit1a <- 1 - 1/R01a # critical vaccination level that would prevent an epidemic: if R_V = 1, then 1 = R0(1-p), so 1/R0 = 1-p, so p = 1 - 1/R0
 p_crit1a 
 #0.9
@@ -1328,7 +1323,7 @@ plot(x = beta_set, y = p_crit_set, # x = infectiousness, y = critical vaccinatio
 
 explain the shapes of the graphs based on the biology of disease spread
 
-**Write 5a (Infectiousness) answer here (please be concise!)**
+**As infectiousness increases, R_0 increases linearly and p_crit increases asymptotically. USing intuition this makes sense because as infectiousness increases, more people can become infected which leads to. ahigher R_0. Similarly, higher infectiousness causes a need for a higher p_crit, but once it reaches a certain point p_crit is as close to 100% as possible **
 
 ## 5b: Recovery time
 
@@ -1357,7 +1352,8 @@ plot(x = gamma_set, y = p_crit_set.gamma, # x = recovery, y = critical vaccinati
 
 explain the shapes of the graphs based on the biology of disease spread
 
-**Write 5b (Recovery time) answer here (please be concise!)**
+**As recovery time increases, R_0 decreases asymptotically and p_crit decreases linearly. This makes sense because R0 is proportional to the infectious period. A longer recovery time means infected individuals remain infectious for a longer duration, but the effect on R0 diminishes as transmission levels out. In contrast, p_crit decreases linearly because it is directly related to R0 through the equation
+p_crit = 1−1/R0. **
 
 ## 5c: population size
 
@@ -1388,7 +1384,7 @@ plot(x = Nset.N, y = p_crit_set.N, # x = infectiousness, y = p crit
 
 explain the shapes of the graphs based on the biology of disease spread
 
-**Write 5c (population size) answer here (please be concise!)**
+**These graphs show that R_0 increases linearly with N and p_crit increases asmyptotically with N. What I find odd about the shape of these graphs is that R_0 and p_crit should remain constant with population size because the equations rely on proportion of sick individuals, not the number of cases.**
 
 /6 points for explanation of how R_0 and p depend upon infectiousness, recovery time, and population size.  
 /6 point per simulation line   
