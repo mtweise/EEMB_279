@@ -1,0 +1,117 @@
+---
+title: "Modeling_project_group"
+output: html_document
+date: "2025-02-10"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Group/general info
+#Purpose:
+This is an R Markdown document for the modeling group project...
+
+```{r libraries}
+library(vegan)
+```
+
+#Parameters
+for Table 1 in the paper - setting parameters for the models
+```{r parameter, echo=FALSE}
+#VARIABLES
+CL  #live coral on open substrate
+CD  #dead coral
+CP #Live coral on dead coral
+ME #Exposed macroalgae
+MP #Protected macroalgae
+S #Empty space; colonizable by coral or macroalgae
+
+#PARAMETERS (change in proportional cover/year)
+gc <- 0.1 #growth rate of coral
+gm <- 0.6 #growth rate of macroalgae
+gmc <- 0.06 #Overgrowth rate of macroalgae onto live coral
+dc <- 0.001 #Death rate of coral
+dm <- 0.05 #Senescence rate of macroalgae
+e <- 0.01 #Erosion rate of dead coral
+gammaC <- 0.001 #Open settlement rate of coral
+settlement <- 1 #Multiplier for rate of coral settlement onto dead coral
+gammaM <- 0.001 #Open settlement rate of macroalgae
+h <- 0.3 #Ambient herbivory rate
+p <- 0.5 #Algal protection; degree to which ambient herbivory is reduced for protected macroalgae
+
+```
+
+
+#Emma (equation 1)
+```{r}
+
+```
+
+
+#Addie (equation 2)
+```{r}
+
+```
+
+
+#Mads (equation 3)
+```{r}
+
+#dCP/dt = GC* CP*CD + s*gammaC*CD - gmc*CP*(ME+MP) - dc*CP - e*CP
+equation_3 <- gc*CP*cd + settlement*gammaC*CD - gmc*CP*(ME + MP) - dc*CP - e*CP
+
+```
+
+#Equation 4
+```{r}
+#dME/dt= gm*ME*S + gammaM*S - ME(h+dm)
+equation_4 <- gm*ME*S + gammaM*S - ME*(h+dm)
+```
+
+
+#Equation 5
+```{r}
+#dMP/dt = gm*MP*CD +gm*ME*CD + gmc*CL(ME+MP) +gmc*CP*(ME+MP) + gammaM*CD - MP(h(1-p) +dm + e)
+```
+
+#Equation 6
+```{r}
+#S= 1- CL- CD- CP- ME- MP
+
+```
+
+
+#Begin model simulation 1
+Can we kind of model this off of an SIR model we've done in lab?? I think it would be helpful to maybe diagram this out so we're all on the same page?
+
+#Initial conditions
+```{r}
+# population size
+N <- CL + CP
+N<- 100   
+
+# set initial parameter values
+		
+
+```
+
+#Set up our storage variables and fill them with our initial conditions. **Note:** Now we'll need one for each "state" of the population.
+```{r}
+# time steps
+tset <- seq(from = 0, to = 60, length.out = 20000) # sequence of timesteps from 0 to 60 with a length of 20000
+
+# holding vector for N (population size)
+N.simu1 <- NaN*tset # vector of the same length as tset that is filled with NaNs
+N.simu1[1] <- N # set the initial population size
+
+# holding vector for I (infected individuals)
+I.simu1 <- NaN*tset# vector of the same length as tset that is filled with NaNs
+I.simu1[1] <- I0 # set the initial number of infected individuals
+
+```
+
+#FROM GUIDELINES:
+At least one figure* presenting time-series simulations of the model. This figure should show how outcomes differ as a function of an interesting parameter(s). Make sure your figure includes a caption! (If you have many state variables, sometimes it’s helpful for this to be split into two or more figures.)
+
+At least one figure* presenting a bifurcation diagram with respect to an interesting parameter. Make sure your figure includes a descriptive caption!
