@@ -317,6 +317,9 @@ X.simu3[1] <- X0_dis
 P.simu3 <- NaN*tset2
 P.simu3[1] <- P0_dis
 
+
+head(X.simu3)
+
 # using tset2: time from 100 to 210
 for(i in 2:length(tset2)){
 	
@@ -765,7 +768,41 @@ Make a timeseries plot like that in Part 4 (i.e., showing a timeseries from year
 Be sure to (1) label your axes, (2) include a legend, and (3) indicate when harvest of predators and prey is occurring.  
 
 ```{r}
+# 2d
+# Scenario 5:
+# first section time 0 to 100, community disassembly aka plot 2b
+## plot prey
+plot(x = tset, y = X.simu2,
+     type = 'l', las = 1, lwd = 2, col = Xcol,
+     xlab = 'Time', ylab = 'Density',
+     xlim = c(0, 210), ylim = c(0, 65))
+## plot predator
+lines(x = tset, y = P.simu2,
+      lwd = 2, col = Pcol)
 
+
+# second part: recovery with synchrous stopping of hunting
+## plot prey
+lines(x = tset2, y = X.simu5,
+      lwd = 2, col = Xcol)
+## plot predator
+lines(x = tset2, y = P.simu5,
+      lwd = 2, col = Pcol)
+
+# add a legend
+legend(x = 'topright',  # turns out we can tell R to put the legend in a physical place on the plot
+       inset = 0.03,   # the inset argument tells R how far inside the axes to place the legend
+       lwd = 2, 
+       legend = c('Prey','Predator'),
+       col = c(Xcol, Pcol))
+
+# add vertical lines to indicate where hunting ***started
+abline(v = t_Xstart, lty = 2, col = Xcol)
+abline(v = t_Pstart, lty = 2, col = Pcol)
+
+# ad vertical lines to indicate where hunting ***ended
+abline(v = t_stopP, lty = 2, col = Pcol)
+abline(v = t_stophunt, lty = 3, col = Xcol)
 
 
 
@@ -791,7 +828,15 @@ To interpret the effects of changing alternate prey availability --
 a. Paste your bifurcation diagrams (make sure the plots show up when you knit!) from part 5c here. (You should have two -- one for $X^*$, and one for $P^*$, both with respect to Y.) 
 
 ```{r}
+# plot stable equilibria of predator (Pstarset) against density of alternate prey (Yset)
+plot(x = Yset, y = Pstarset,
+     type = 'l', lwd = 2, col = Pcol, las = 1,
+     xlab = 'Density of alternate prey, Y', ylab = 'Stable equilibria of predator, P*')
 
+# plot stable equilibria of prey (Xstarset) against density of alternate prey (Yset)
+plot(x = Yset, y = Xstarset,
+     type = 'l', lwd = 2, col = Xcol, las = 1, 
+     xlab = 'Density of alternate prey, Y', ylab = 'Stable equilibria of focal prey, X*')
 
 
 ```
@@ -832,6 +877,75 @@ a. Choose a parameter other than Y, and make two bifurcation diagrams with this 
 
 ```{r}
 
+K_pset <- seq(from = 0, to = 1000,length.out = 50) #densities I want to look at (0-1000 prey items)
+# checking to make sure that simulation has reached equilibrium
+
+# plot prey (X.simu1) against time
+plot(x = tset, y = X.simu1,
+     type = 'l', las = 1, lwd = 2, col = Xcol, 
+     xlab = 'Time', ylab = 'Density')
+
+# plot predator a(P.simu1) against time
+lines(x = tset, y = P.simu1,
+      lwd = 2, col = Pcol)
+
+# add a legend
+legend(x = 70, y = 50, 
+       legend = c('Prey','Predator'),
+       col = c(Xcol, Pcol),
+       lwd = 2)
+
+Xstarset <- NaN*Yset
+Pstarset <- NaN*Yset
+
+
+#####
+for(j in 1:length(Yset)){
+  # assign the value of Y
+	K_p <- K_pset[j] 
+	
+	# create a holding vector for predator and prey populations
+	# and fill with initial conditions
+	X.simu <- NaN*tset
+	X.simu[1] <- 1   
+	P.simu <- NaN*tset 
+	P.simu[1] <- 1
+	
+	for(i in 2:length(tset)){
+	  # calculating change in time
+		dt <- tset[i]-tset[i-1]
+		
+		# storing temporary variables
+		X <- X.simu[i-1]
+		P <- P.simu[i-1]
+		
+		# calculating change in population size
+		dX <- ( r_x*X*(1-X/K_x) - a_x*P*X - h_x*X ) * dt
+		dP <- ( P*(c*(a_x*X+a_y*Y)-d_p)*(1-P/K_p) - h_p*P ) * dt
+		
+		# calculating total population size
+		X.simu[i] <- X.simu[i-1] + dX
+		P.simu[i] <- P.simu[i-1] + dP	
+	}
+	
+	# storing last population size (equilibrium population size) in holding vector
+	Xstarset[j] <- X.simu[length(tset)]
+	Pstarset[j] <- P.simu[length(tset)]
+	
+}
+
+########
+#plot
+
+# plot stable equilibria of predator (Pstarset) against density of alternate prey (Yset)
+plot(x = K_pset, y = Pstarset,
+     type = 'l', lwd = 2, col = Pcol, las = 1,
+     xlab = 'Carrying capacity of predator, K_p', ylab = 'Stable equilibria of predator, P*')
+
+# plot stable equilibria of prey (Xstarset) against density of alternate prey (Yset)
+plot(x = K_pset, y = Xstarset,
+     type = 'l', lwd = 2, col = Xcol, las = 1, 
+     xlab = 'Carrying capacity of predator, K_p', ylab = 'Stable equilibria of focal prey, X*')
 
 
 
@@ -864,9 +978,141 @@ Question 4: Impacts of reduced alternate prey on recovery scenarios
 a. Set `Y` = 200. Using the same harvest rates we have chosen above (`h_x` = 0.65 and `h_p` = 0.325), find the equilibrium population sizes when harvest is occurring (i.e., in a "disassembled" or "exploited" system).  
 
 ```{r}
+Y_new <- 200
+X0 <- X.simu1[length(tset)]
+P0 <- P.simu1[length(tset)]
+
+# creating holding vectors and filling initial conditions
+tset <- seq(from = 0, to = 100, length.out = 20000)
+X.simu2 <- NaN*tset
+X.simu2[1] <- X0
+P.simu2 <- NaN*tset
+P.simu2[1] <- P0
+
+for(i in 2:length(tset)){
+  
+  # ifelse statements for hunting
+	if(tset[i] < t_Pstart){ h_p_now <- 0 } ##if the time is before i can start hunting, make my hunting dumby variable 0 so no hunting is happening
+  else { h_p_now <- h_p } ##if my current time is after hunting has started, make it the hunting rate for predators
+	
+	if(tset[i] < t_Xstart){ h_x_now <- 0 } ## same as above but with prey
+  else { h_x_now <- h_x } ## 
+	
+  # calculating change in time
+	dt <- tset[i]-tset[i-1]
+	
+	# 
+	X <- X.simu2[i-1]
+	P <- P.simu2[i-1]
+	
+	# calculating change in population size for predator and prey
+	dX <- ( r_x*X*(1-X/K_x) - a_x*P*X - h_x_now*X ) * dt
+	dP <- ( P*(c*(a_x*X+a_y*Y_new)-d_p)*(1-P/K_p) - h_p_now*P ) * dt
+	
+	# calculating total population size for predator and prey
+	X.simu2[i] <- X.simu2[i-1] + dX
+	P.simu2[i] <- P.simu2[i-1] + dP
+}
+#check head
+
+
+#plot
+# Scenario 2:
+# timeseries here time on x and simulation of prey and predaotrs each as a line
+
+# plot prey (X.simu2) against time (tset)
+plot(x = tset, y = X.simu2,
+     type = 'l', las = 1, lwd = 2, col = Xcol,
+     xlab = 'Time', ylab = 'Density',
+     ylim = c(0, 160))
+
+# plot predator (P.simu2) against time (tset)
+lines(x = tset, y = P.simu2,
+      lwd = 2, col = Pcol)
+
+# add a legend
+## New legend arguments!! What do they do? ##
+legend(x = 'topright',  # turns out we can tell R to put the legend in a physical place on the plot
+       inset = 0.03,   # the inset argument tells R how far inside the axes to place the legend
+       lwd = 2,
+       legend = c('Prey','Predator'),
+       col = c(Xcol, Pcol))
+
+# add vertical lines to indicate where hunting was turned on for each species
+abline(v = t_Pstart, lty = 2, col = Pcol)
+abline(v = t_Xstart, lty = 2, col = Xcol)
 
 
 
+
+
+
+
+
+
+#first try
+#i am going ot start with the population size at the end of the prey similuation, making the assumption that it reach 
+#X04 <- X.simu1[length(tset)]
+#P04 <- P.simu1[length(tset)]
+
+# creating holding vectors and filling initial conditions
+#tset <- seq(from = 0, to = 100, length.out = 20000)
+#X.simu4a <- NaN*tset
+#X.simu4a[1] <- X04
+#P.simu4a <- NaN*tset
+#P.simu4a[1] <- P04
+
+
+#for(i in 2:length(tset)){
+  
+  # ifelse statements for hunting
+#	if(tset[i] < t_Pstart){ h_p_now <- 0 } ##if the time is before i can start hunting, make my hunting dumby variable 0 so no hunting is happening
+#  else { h_p_now <- h_p } ##if my current time is after hunting has started, make it the hunting rate for predators
+	
+#	if(tset[i] < t_Xstart){ h_x_now <- 0 } ## same as above but with prey
+#  else { h_x_now <- h_x } ## 
+	
+  # calculating change in time
+#	dt <- tset[i]-tset[i-1]
+	
+	# 
+#	X <- X.simu4a[i-1]
+#	P <- P.simu4a[i-1]
+	
+	# calculating change in population size for predator and prey
+#	dX <- ( r_x*X*(1-X/K_x) - a_x*P*X - h_x_now*X ) * dt
+#	dP <- ( P*(c*(a_x*X+a_y*Y_new)-d_p)*(1-P/K_p) - h_p_now*P ) * dt
+	
+	# calculating total population size for predator and prey
+#	X.simu4a[i] <- X.simu4a[i-1] + dX
+#	P.simu4a[i] <- P.simu4a[i-1] + dP
+#}
+
+#head(X.simu4a)
+# Scenario 2:
+# timeseries here time on x and simulation of prey and predaotrs each as a line
+
+# plot prey (X.simu2) against time (tset)
+#plot(x = tset, y = X.simu4a,
+#     type = 'l', las = 1, lwd = 2, col = Xcol,
+#     xlab = 'Time', ylab = 'Density',
+#     ylim = c(0, 150))
+
+# plot predator (P.simu2) against time (tset)
+#lines(x = tset, y = P.simu4a,
+#      lwd = 2, col = Pcol)
+
+# add a legend
+## New legend arguments!! What do they do? ##
+#legend(x = 'topright',  # turns out we can tell R to put the legend in a physical place on the plot
+#       inset = 0.03,   # the inset argument tells R how far inside the axes to place the legend
+#       lwd = 2,
+#       legend = c('Prey','Predator'),
+ #      col = c(Xcol, Pcol))
+
+# add vertical lines to indicate where hunting was turned on for each species
+#abline(v = t_Pstart, lty = 2, col = Pcol)
+#abline(v = t_Xstart, lty = 2, col = Xcol)
 
 ```
 
@@ -882,11 +1128,78 @@ a. Set `Y` = 200. Using the same harvest rates we have chosen above (`h_x` = 0.6
 b. Simulate the three recovery scenarios (synchronous, predator-first, and prey-first). Create three timeseries graphs showing your results. Be sure to label your axes, include a legend, and indicate the time at which harvest stopped. HINT: You may need to run your timeseries for longer! Try `tset3 <- seq(100,500,length.out=22000)`
 
 ```{r}
+tset3 <- seq(100,500,length.out=22000)
+# start new simulation with values from the end of the previous simulation
+#set initial conditions to be the pop valus at equilibrium with hunting aka at the end of the simulation
+X0_dis4b <- X.simu4a[length(tset3)]
+P0_dis4b <- P.simu4a[length(tset3)]
+
+head(X0_dis4b)
+#SYNCHRONOUS
+# creating holding vectors and storing initial conditions
+X.simu6 <- NaN*tset3 #note tset2 and updated to simu3
+X.simu6[1] <- X0_dis4b
+P.simu6 <- NaN*tset3
+P.simu6[1] <- P0_dis4b
+
+# using tset2: time from 100 to 210
+for(i in 2:length(tset3)){
+	
+  # if else statements
+  ## tstophunt is 120 (time we stop hunting) is the same for both
+  ## if the current time is before we stop hunting, then keep on hunting. set the hunting rate to teh hunting rate
+	if(tset3[i] < t_stophunt){ h_p_now <- h_p } else { h_p_now <- 0 } ##if after we stop hunting, set to 0, no more hunting!
+	
+  ## 
+  ## same as above but for prey
+	if(tset3[i] < t_stophunt){ h_x_now <- h_x } else { h_x_now <- 0 }
+	
+  # calculating change in time
+	dt <- tset3[i]-tset3[i-1] #tset2
+	
+	# storing temporary variables
+	X <- X.simu6[i-1]
+	P <- P.simu6[i-1]
+	
+	# calculating change in population size
+	dX <- (r_x*X*(1-X/K_x) - a_x*P*X - h_x_now*X ) * dt
+	dP <- (P*(c*(a_x*X+a_y*Y_new)-d_p)*(1-P/K_p) - h_p_now*P ) * dt
+	
+	# calculating total population size and storing in holding vector
+	X.simu6[i] <- X.simu6[i-1] + dX
+	P.simu6[i] <- P.simu6[i-1] + dP
+}
+
+
+head(X.simu6)
+
+#plot
+# plot prey (X.simu3) against time (tset2)
+plot(x = tset3, y = X.simu6,
+     type = 'l', las = 1, lwd = 2, col = Xcol,
+     xlab = 'Time', ylab = 'Density',
+     ylim = c(0, 65))
+
+# plot predator (P.simu3) against time (tset2)
+lines(x = tset3, y = P.simu6,
+      lwd = 2, col = Pcol)
+
+# add a legend
+legend(x = 170, y = 65, 
+       lwd = 2,
+       legend = c('Prey', 'Predator'),
+       col = c(Xcol, Pcol))
+
+# add vertical lines to indicate where hunting stopped
+abline(v = t_stophunt, lty = 2, col = Pcol)
+abline(v = t_stophunt, lty = 3, col = Xcol)
 
 
 
 
 ```
+
+
 
 
 /3 axes for three plots  
