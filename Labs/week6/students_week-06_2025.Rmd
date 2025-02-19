@@ -850,7 +850,7 @@ plot(x = Yset, y = Xstarset,
 
 b. Describe in biological terms what is happening as the alternate prey increases in density.
 
-**Write answer in words here (BE CONCISE please)**
+As the alternate prey Y increases in density, the stable equilibria of prey X decreases asymptotically and the stable equilibria of predator increases asymptotically. This makes sense because there is more prey available for the predator. However, the prey species X and Y begin competing with each other for reasources.
 
 
 
@@ -861,7 +861,7 @@ b. Describe in biological terms what is happening as the alternate prey increase
 
 c. Look up the term "apparent competition." How does your bifurcation diagram of $X^*$ with respect to Y show this phenomenon?  
 
-**Write answer in words here (BE CONCISE please)**
+The bifurcation diagrma of X with respect to Y shows apparent competition because they share a common predator. When prey Y has a density of roughly 350-600, we can see that prey species X and Y are predated at a similar rate. However, when Y has lower density X experiences higher predation and vise versa.
 
 
 = /2 points total  
@@ -962,7 +962,7 @@ plot(x = K_pset, y = Xstarset,
 
 b. Describe in biological terms what is happening. Do your results make intuitive sense?  
 
-**Write answer in words here (BE CONCISE please)**
+As the carrying capacity of the predator (K_p) increases, it makes intuitive sense for the stable equilibria of the predator to also increase. In other words, when the carrying capacity increases, the equilibria point also increases. Similarly, it makes sense that as the predator carrying capacity increases, the prey stable equilibria decreases. When there are more predators, then more prey are consumed.
 
 
 = /2 points total  
@@ -984,10 +984,10 @@ P0 <- P.simu1[length(tset)]
 
 # creating holding vectors and filling initial conditions
 tset <- seq(from = 0, to = 100, length.out = 20000)
-X.simu2 <- NaN*tset
-X.simu2[1] <- X0
-P.simu2 <- NaN*tset
-P.simu2[1] <- P0
+X.simu4a <- NaN*tset
+X.simu4a[1] <- X0
+P.simu4a <- NaN*tset
+P.simu4a[1] <- P0
 
 for(i in 2:length(tset)){
   
@@ -1002,16 +1002,16 @@ for(i in 2:length(tset)){
 	dt <- tset[i]-tset[i-1]
 	
 	# 
-	X <- X.simu2[i-1]
-	P <- P.simu2[i-1]
+	X <- X.simu4a[i-1]
+	P <- P.simu4a[i-1]
 	
 	# calculating change in population size for predator and prey
 	dX <- ( r_x*X*(1-X/K_x) - a_x*P*X - h_x_now*X ) * dt
 	dP <- ( P*(c*(a_x*X+a_y*Y_new)-d_p)*(1-P/K_p) - h_p_now*P ) * dt
 	
 	# calculating total population size for predator and prey
-	X.simu2[i] <- X.simu2[i-1] + dX
-	P.simu2[i] <- P.simu2[i-1] + dP
+	X.simu4a[i] <- X.simu4a[i-1] + dX
+	P.simu4a[i] <- P.simu4a[i-1] + dP
 }
 #check head
 
@@ -1021,13 +1021,13 @@ for(i in 2:length(tset)){
 # timeseries here time on x and simulation of prey and predaotrs each as a line
 
 # plot prey (X.simu2) against time (tset)
-plot(x = tset, y = X.simu2,
+plot(x = tset, y = X.simu4a,
      type = 'l', las = 1, lwd = 2, col = Xcol,
      xlab = 'Time', ylab = 'Density',
      ylim = c(0, 160))
 
 # plot predator (P.simu2) against time (tset)
-lines(x = tset, y = P.simu2,
+lines(x = tset, y = P.simu4a,
       lwd = 2, col = Pcol)
 
 # add a legend
@@ -1042,77 +1042,6 @@ legend(x = 'topright',  # turns out we can tell R to put the legend in a physica
 abline(v = t_Pstart, lty = 2, col = Pcol)
 abline(v = t_Xstart, lty = 2, col = Xcol)
 
-
-
-
-
-
-
-
-
-#first try
-#i am going ot start with the population size at the end of the prey similuation, making the assumption that it reach 
-#X04 <- X.simu1[length(tset)]
-#P04 <- P.simu1[length(tset)]
-
-# creating holding vectors and filling initial conditions
-#tset <- seq(from = 0, to = 100, length.out = 20000)
-#X.simu4a <- NaN*tset
-#X.simu4a[1] <- X04
-#P.simu4a <- NaN*tset
-#P.simu4a[1] <- P04
-
-
-#for(i in 2:length(tset)){
-  
-  # ifelse statements for hunting
-#	if(tset[i] < t_Pstart){ h_p_now <- 0 } ##if the time is before i can start hunting, make my hunting dumby variable 0 so no hunting is happening
-#  else { h_p_now <- h_p } ##if my current time is after hunting has started, make it the hunting rate for predators
-	
-#	if(tset[i] < t_Xstart){ h_x_now <- 0 } ## same as above but with prey
-#  else { h_x_now <- h_x } ## 
-	
-  # calculating change in time
-#	dt <- tset[i]-tset[i-1]
-	
-	# 
-#	X <- X.simu4a[i-1]
-#	P <- P.simu4a[i-1]
-	
-	# calculating change in population size for predator and prey
-#	dX <- ( r_x*X*(1-X/K_x) - a_x*P*X - h_x_now*X ) * dt
-#	dP <- ( P*(c*(a_x*X+a_y*Y_new)-d_p)*(1-P/K_p) - h_p_now*P ) * dt
-	
-	# calculating total population size for predator and prey
-#	X.simu4a[i] <- X.simu4a[i-1] + dX
-#	P.simu4a[i] <- P.simu4a[i-1] + dP
-#}
-
-#head(X.simu4a)
-# Scenario 2:
-# timeseries here time on x and simulation of prey and predaotrs each as a line
-
-# plot prey (X.simu2) against time (tset)
-#plot(x = tset, y = X.simu4a,
-#     type = 'l', las = 1, lwd = 2, col = Xcol,
-#     xlab = 'Time', ylab = 'Density',
-#     ylim = c(0, 150))
-
-# plot predator (P.simu2) against time (tset)
-#lines(x = tset, y = P.simu4a,
-#      lwd = 2, col = Pcol)
-
-# add a legend
-## New legend arguments!! What do they do? ##
-#legend(x = 'topright',  # turns out we can tell R to put the legend in a physical place on the plot
-#       inset = 0.03,   # the inset argument tells R how far inside the axes to place the legend
-#       lwd = 2,
-#       legend = c('Prey','Predator'),
- #      col = c(Xcol, Pcol))
-
-# add vertical lines to indicate where hunting was turned on for each species
-#abline(v = t_Pstart, lty = 2, col = Pcol)
-#abline(v = t_Xstart, lty = 2, col = Xcol)
 
 ```
 
