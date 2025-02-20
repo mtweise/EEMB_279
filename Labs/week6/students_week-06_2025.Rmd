@@ -1177,14 +1177,15 @@ head(X.simu7)
 plot(x = tset3, y = X.simu7,
      type = 'l', las = 1, lwd = 2, col = Xcol,
      xlab = 'Time', ylab = 'Density',
-     ylim = c(0, 120))
+     ylim = c(0, 1000),
+     main = 'Synchronous')
 
 # plot predator (P.simu3) against time (tset2)
 lines(x = tset3, y = P.simu7,
       lwd = 2, col = Pcol)
 
 # add a legend
-legend(x = 170, y = 65, 
+legend(x = 'top', 
        lwd = 2,
        legend = c('Prey', 'Predator'),
        col = c(Xcol, Pcol))
@@ -1213,7 +1214,7 @@ for(i in 2:length(tset2)){
 	if(tset2[i] < t_stopX){ h_x_now <- h_x } else { h_x_now <- 0 }## UPDATE HERE!! important- setting different time to stop hunting
 	
   # calculating change in time
-	dt <- tset2[i]-tset2[i-1]
+	dt <- tset3[i]-tset3[i-1]
 	
 	# storing temporary variables
 	X <- X.simu8[i-1]
@@ -1267,14 +1268,15 @@ for(i in 2:length(tset2)){
 plot(x = tset3, y = X.simu8,
      type = 'l', las = 1, lwd = 2, col = Xcol,
      xlab = 'Time', ylab = 'Density',
-     ylim = c(0, 65))
+     ylim = c(0, 1000),
+     main = 'Predator First')
 
 # plot predator (P.simu4) against time (tset2)
 lines(x = tset3, y = P.simu8,
       lwd = 2, col = Pcol)
 
 # add a legend
-legend(x = 170, y = 65, 
+legend(x = 'top', 
        lwd = 2,
        legend = c('Prey', 'Predator'),
        col = c(Xcol, Pcol))
@@ -1284,6 +1286,63 @@ abline(v = t_stophunt, lty = 2, col = Pcol)
 abline(v = t_stopnew, lty = 3, col = Xcol)
 
 
+###########################################
+#PREY FIRST
+
+# creating holding vectors and storing initial conditions
+X.simu9 <- NaN*tset3
+X.simu9[1] <- X0_dis
+P.simu9 <- NaN*tset3
+P.simu9[1] <- P0_dis
+
+for(i in 2:length(tset2)){
+	#IMPRTAnt updates here
+  # if time is before t_stophunt, h_p_now = h_p
+  # else, h_p_now = 0
+	if(tset3[i] < t_stopP){ h_p_now <- h_p } else { h_p_now <- 0 } 
+	
+  # if time is before t_stopX, h_x_now = h_x
+  # else, h_x_now = 0
+	if(tset3[i] < t_stophunt){ h_x_now <- h_x } else { h_x_now <- 0 }## UPDATE HERE!! important- setting different time to stop hunting
+	
+  # calculating change in time
+	dt <- tset3[i]-tset3[i-1]
+	
+	# storing temporary variables
+	X <- X.simu9[i-1]
+	P <- P.simu9[i-1]
+	
+	# calculating change in population size
+	dX <- ( r_x*X*(1-X/K_x) - a_x*P*X - h_x_now*X ) * dt
+	dP <- ( P*(c*(a_x*X+a_y*Y)-d_p)*(1-P/K_p) - h_p_now*P ) * dt
+	
+	# calculating total population size and storing in holding vector
+	X.simu9[i] <- X.simu9[i-1] + dX
+	P.simu9[i] <- P.simu9[i-1] + dP
+}
+# 
+
+# Scenario 5:
+# plot prey (X.simu4) against time (tset2)
+plot(x = tset3, y = X.simu9,
+     type = 'l', las = 1, lwd = 2, col = Xcol,
+     xlab = 'Time', ylab = 'Density',
+     ylim = c(0, 1000),
+     main= 'Prey First')
+
+# plot predator (P.simu4) against time (tset2)
+lines(x = tset3, y = P.simu9,
+      lwd = 2, col = Pcol)
+
+# add a legend
+legend(x= 'top' ,
+       lwd = 2,
+       legend = c('Prey', 'Predator'),
+       col = c(Xcol, Pcol))
+
+# add vertical lines to indicate where hunting stopped
+abline(v = t_stopP, lty = 2, col = Pcol)
+abline(v = t_stophunt, lty = 3, col = Xcol)
 
 ```
 
@@ -1301,10 +1360,10 @@ abline(v = t_stopnew, lty = 3, col = Xcol)
 
 c. Compare your findings to one another. For which scenario was overall recovery to an unexploited state fastest?  
 
-**Compare findings here: Write answer in words here (BE CONCISE please)**
+**The scenarios from fastest to slowest recovery is synchronous, predator first, and then prey first. I think this makes sense because often times predator species are more long lived than their prey. Therefore, it makes sense that it would take the predator population longer to reach equilibrium if they have to wait for their prey to recover last.**
 
 
-**The overall recovers to an unexploited state was fastest in: ______FILL IN HERE______ scenario**
+**The overall recovers to an unexploited state was fastest in: ______synchronous_____ scenario**
 
 
 = /2 points total  
@@ -1315,7 +1374,7 @@ c. Compare your findings to one another. For which scenario was overall recovery
 
 d. Compare your findings to those of Samhouri et al. (2017). What do your results suggest about the importance of a secondary prey type to predator-first recovery?  
 
-**Write answer in words here (BE CONCISE please)**
+**Our results suggest that the secondary prey type abundance can impact predator first recovery speeds. In our model, we can see that increasing the secondary prey abundance led to the system recovering 100 years later than Samhouri et al (2017) initially predicted.**
 
 
 
