@@ -978,41 +978,111 @@ Question 4: Impacts of reduced alternate prey on recovery scenarios
 a. Set `Y` = 200. Using the same harvest rates we have chosen above (`h_x` = 0.65 and `h_p` = 0.325), find the equilibrium population sizes when harvest is occurring (i.e., in a "disassembled" or "exploited" system).  
 
 ```{r}
-Y_new <- 200
-X0 <- X.simu1[length(tset)]
-P0 <- P.simu1[length(tset)]
+Y = 200
+h_x = 0.65 
+h_p = 0.325
 
-# creating holding vectors and filling initial conditions
-tset <- seq(from = 0, to = 100, length.out = 20000)
-X.simu4a <- NaN*tset
-X.simu4a[1] <- X0
-P.simu4a <- NaN*tset
-P.simu4a[1] <- P0
+#re-run for() loops but with new values for Y
 
-for(i in 2:length(tset)){
-  
-  # ifelse statements for hunting
-	if(tset[i] < t_Pstart){ h_p_now <- 0 } ##if the time is before i can start hunting, make my hunting dumby variable 0 so no hunting is happening
-  else { h_p_now <- h_p } ##if my current time is after hunting has started, make it the hunting rate for predators
+# creating holding vectors and storing initial conditions - using initial time step, not extended
+X.simu6 <- NaN*tset
+X.simu6[1] <- X0_dis
+P.simu6 <- NaN*tset
+P.simu6[1] <- P0_dis
+
+# using tset
+for(i in 2:length(tset)){ #start at time step 2 from the second time step we set
 	
-	if(tset[i] < t_Xstart){ h_x_now <- 0 } ## same as above but with prey
-  else { h_x_now <- h_x } ## 
+  # if else statements
+  ## if current time step is before (less than) t_stophunt hunting pressure stays as h_p
+  ## else hunting pressure is set to 0 (no hunting after t_stophunt)
+	if(tset[i] < t_stophunt){ h_p_now <- h_p } else { h_p_now <- 0 }
+	
+  ## if current time step is before (less than) t_stophunt hunting pressure stays as h_x
+  ## else hunting pressure is set to 0 (no hunting after t_stophunt)
+	if(tset[i] < t_stophunt){ h_x_now <- h_x } else { h_x_now <- 0 }
 	
   # calculating change in time
 	dt <- tset[i]-tset[i-1]
 	
+	# storing temporary variables
+	X <- X.simu6[i-1] #prey at previous step
+	P <- P.simu6[i-1] #preds at previous step
+	
+	# calculating change in population size
+	dX <- (r_x*X*(1-X/K_x) - a_x*P*X - h_x_now*X ) * dt #hunting equation for prey (with new Y value)
+	dP <- (P*(c*(a_x*X+a_y*Y)-d_p)*(1-P/K_p) - h_p_now*P ) * dt #hunting equation for preds (with new Y value)
+	
+	# calculating total population size and storing in holding vector
+	X.simu6[i] <- X.simu6[i-1] + dX
+	P.simu6[i] <- P.simu6[i-1] + dP
+}
+
+#and now plot
+
+# plot prey (X.simu6) against time (tset2)
+plot(x = tset, y = X.simu6,
+     type = 'l', las = 1, lwd = 2, col = Xcol,
+     xlab = 'Time', ylab = 'Density',
+     ylim = c(0, 65)) 
+
+# plot predator (P.simu6) against time (tset2)
+lines(x = tset, y = P.simu6,
+      lwd = 2, col = Pcol)
+
+# add a legend
+legend(x = 170, y = 65, 
+       lwd = 2,
+       legend = c('Prey', 'Predator'),
+       col = c(Xcol, Pcol))
+
+# add vertical lines to indicate where hunting stopped
+abline(v = t_stophunt, lty = 2, col = Pcol)
+abline(v = t_stophunt, lty = 3, col = Xcol)
+
+# add a legend
+legend(x = 60, y = 60, 
+       legend = c('Prey','Predator'),
+       lwd = 2,col = c(Xcol, Pcol))
+```
+
+
+```{r}
+#Y_new <- 200
+#X0 <- X.simu1[length(tset)]
+#P0 <- P.simu1[length(tset)]
+
+# creating holding vectors and filling initial conditions
+#tset <- seq(from = 0, to = 100, length.out = 20000)
+#X.simu4a <- NaN*tset
+#X.simu4a[1] <- X0
+#P.simu4a <- NaN*tset
+#P.simu4a[1] <- P0
+
+#for(i in 2:length(tset)){
+  
+  # ifelse statements for hunting
+#	if(tset[i] < t_Pstart){ h_p_now <- 0 } ##if the time is before i can start hunting, make my hunting dumby variable 0 so no hunting is happening
+#  else { h_p_now <- h_p } ##if my current time is after hunting has started, make it the hunting rate for predators
+	
+#	if(tset[i] < t_Xstart){ h_x_now <- 0 } ## same as above but with prey
+#  else { h_x_now <- h_x } ## 
+	
+  # calculating change in time
+#	dt <- tset[i]-tset[i-1]
+	
 	# 
-	X <- X.simu4a[i-1]
-	P <- P.simu4a[i-1]
+#	X <- X.simu4a[i-1]
+#	P <- P.simu4a[i-1]
 	
 	# calculating change in population size for predator and prey
-	dX <- ( r_x*X*(1-X/K_x) - a_x*P*X - h_x_now*X ) * dt
-	dP <- ( P*(c*(a_x*X+a_y*Y_new)-d_p)*(1-P/K_p) - h_p_now*P ) * dt
+#	dX <- ( r_x*X*(1-X/K_x) - a_x*P*X - h_x_now*X ) * dt
+#	dP <- ( P*(c*(a_x*X+a_y*Y_new)-d_p)*(1-P/K_p) - h_p_now*P ) * dt
 	
 	# calculating total population size for predator and prey
-	X.simu4a[i] <- X.simu4a[i-1] + dX
-	P.simu4a[i] <- P.simu4a[i-1] + dP
-}
+#	X.simu4a[i] <- X.simu4a[i-1] + dX
+#	P.simu4a[i] <- P.simu4a[i-1] + dP
+#}
 #check head
 
 
@@ -1021,26 +1091,26 @@ for(i in 2:length(tset)){
 # timeseries here time on x and simulation of prey and predaotrs each as a line
 
 # plot prey (X.simu2) against time (tset)
-plot(x = tset, y = X.simu4a,
-     type = 'l', las = 1, lwd = 2, col = Xcol,
-     xlab = 'Time', ylab = 'Density',
-     ylim = c(0, 160))
+#plot(x = tset, y = X.simu4a,
+#     type = 'l', las = 1, lwd = 2, col = Xcol,
+#     xlab = 'Time', ylab = 'Density',
+ #    ylim = c(0, 160))
 
 # plot predator (P.simu2) against time (tset)
-lines(x = tset, y = P.simu4a,
-      lwd = 2, col = Pcol)
+#lines(x = tset, y = P.simu4a,
+ #     lwd = 2, col = Pcol)
 
 # add a legend
 ## New legend arguments!! What do they do? ##
-legend(x = 'topright',  # turns out we can tell R to put the legend in a physical place on the plot
-       inset = 0.03,   # the inset argument tells R how far inside the axes to place the legend
-       lwd = 2,
-       legend = c('Prey','Predator'),
-       col = c(Xcol, Pcol))
+#legend(x = 'topright',  # turns out we can tell R to put the legend in a physical place on the plot
+#       inset = 0.03,   # the inset argument tells R how far inside the axes to place the legend
+#       lwd = 2,
+ #      legend = c('Prey','Predator'),
+  #     col = c(Xcol, Pcol))
 
 # add vertical lines to indicate where hunting was turned on for each species
-abline(v = t_Pstart, lty = 2, col = Pcol)
-abline(v = t_Xstart, lty = 2, col = Xcol)
+#abline(v = t_Pstart, lty = 2, col = Pcol)
+#abline(v = t_Xstart, lty = 2, col = Xcol)
 
 
 ```
@@ -1060,16 +1130,16 @@ b. Simulate the three recovery scenarios (synchronous, predator-first, and prey-
 tset3 <- seq(100,500,length.out=22000)
 # start new simulation with values from the end of the previous simulation
 #set initial conditions to be the pop valus at equilibrium with hunting aka at the end of the simulation
-X0_dis4b <- X.simu4a[length(tset3)]
-P0_dis4b <- P.simu4a[length(tset3)]
+X0_dis <- X.simu6[length(tset)]
+P0_dis <- P.simu6[length(tset)]
 
-head(X0_dis4b)
+head(X0_dis)
 #SYNCHRONOUS
 # creating holding vectors and storing initial conditions
-X.simu6 <- NaN*tset3 #note tset2 and updated to simu3
-X.simu6[1] <- X0_dis4b
-P.simu6 <- NaN*tset3
-P.simu6[1] <- P0_dis4b
+X.simu7 <- NaN*tset3 #note tset2 and updated to simu3
+X.simu7[1] <- X0_dis
+P.simu7 <- NaN*tset3
+P.simu7[1] <- P0_dis
 
 # using tset2: time from 100 to 210
 for(i in 2:length(tset3)){
@@ -1087,30 +1157,30 @@ for(i in 2:length(tset3)){
 	dt <- tset3[i]-tset3[i-1] #tset2
 	
 	# storing temporary variables
-	X <- X.simu6[i-1]
-	P <- P.simu6[i-1]
+	X <- X.simu7[i-1]
+	P <- P.simu7[i-1]
 	
 	# calculating change in population size
 	dX <- (r_x*X*(1-X/K_x) - a_x*P*X - h_x_now*X ) * dt
-	dP <- (P*(c*(a_x*X+a_y*Y_new)-d_p)*(1-P/K_p) - h_p_now*P ) * dt
+	dP <- (P*(c*(a_x*X+a_y*Y)-d_p)*(1-P/K_p) - h_p_now*P ) * dt
 	
 	# calculating total population size and storing in holding vector
-	X.simu6[i] <- X.simu6[i-1] + dX
-	P.simu6[i] <- P.simu6[i-1] + dP
+	X.simu7[i] <- X.simu7[i-1] + dX
+	P.simu7[i] <- P.simu7[i-1] + dP
 }
 
 
-head(X.simu6)
+head(X.simu7)
 
 #plot
 # plot prey (X.simu3) against time (tset2)
-plot(x = tset3, y = X.simu6,
+plot(x = tset3, y = X.simu7,
      type = 'l', las = 1, lwd = 2, col = Xcol,
      xlab = 'Time', ylab = 'Density',
-     ylim = c(0, 65))
+     ylim = c(0, 120))
 
 # plot predator (P.simu3) against time (tset2)
-lines(x = tset3, y = P.simu6,
+lines(x = tset3, y = P.simu7,
       lwd = 2, col = Pcol)
 
 # add a legend
@@ -1123,6 +1193,95 @@ legend(x = 170, y = 65,
 abline(v = t_stophunt, lty = 2, col = Pcol)
 abline(v = t_stophunt, lty = 3, col = Xcol)
 
+
+##############################################
+#PREDATOR FIRST
+# creating holding vectors and storing initial conditions
+X.simu8 <- NaN*tset3
+X.simu8[1] <- X0_dis
+P.simu8 <- NaN*tset3
+P.simu8[1] <- P0_dis
+
+for(i in 2:length(tset2)){
+	
+  # if time is before t_stophunt, h_p_now = h_p
+  # else, h_p_now = 0
+	if(tset2[i] < t_stophunt){ h_p_now <- h_p } else { h_p_now <- 0 } 
+	
+  # if time is before t_stopX, h_x_now = h_x
+  # else, h_x_now = 0
+	if(tset2[i] < t_stopX){ h_x_now <- h_x } else { h_x_now <- 0 }## UPDATE HERE!! important- setting different time to stop hunting
+	
+  # calculating change in time
+	dt <- tset2[i]-tset2[i-1]
+	
+	# storing temporary variables
+	X <- X.simu8[i-1]
+	P <- P.simu8[i-1]
+	
+	# calculating change in population size
+	dX <- ( r_x*X*(1-X/K_x) - a_x*P*X - h_x_now*X ) * dt
+	dP <- ( P*(c*(a_x*X+a_y*Y)-d_p)*(1-P/K_p) - h_p_now*P ) * dt
+	
+	# calculating total population size and storing in holding vector
+	X.simu8[i] <- X.simu8[i-1] + dX
+	P.simu8[i] <- P.simu8[i-1] + dP
+}
+# Scenario 4:
+t_stopnew <- 140
+
+# creating holding vectors and storing initial conditions
+X.simu8 <- NaN*tset3
+X.simu8[1] <- X0_dis
+P.simu8 <- NaN*tset3
+P.simu8[1] <- P0_dis
+
+for(i in 2:length(tset2)){
+	
+  # if time is before t_stophunt, h_p_now = h_p
+  # else, h_p_now = 0
+	if(tset3[i] < t_stophunt){ h_p_now <- h_p } else { h_p_now <- 0 } 
+	
+  # if time is before t_stopX, h_x_now = h_x
+  # else, h_x_now = 0
+	if(tset3[i] < t_stopnew){ h_x_now <- h_x } else { h_x_now <- 0 }## UPDATE HERE!! important- setting different time to stop hunting
+	
+  # calculating change in time
+	dt <- tset3[i]-tset3[i-1]
+	
+	# storing temporary variables
+	X <- X.simu8[i-1]
+	P <- P.simu8[i-1]
+	
+	# calculating change in population size
+	dX <- ( r_x*X*(1-X/K_x) - a_x*P*X - h_x_now*X ) * dt
+	dP <- ( P*(c*(a_x*X+a_y*Y)-d_p)*(1-P/K_p) - h_p_now*P ) * dt
+	
+	# calculating total population size and storing in holding vector
+	X.simu8[i] <- X.simu8[i-1] + dX
+	P.simu8[i] <- P.simu8[i-1] + dP
+}
+# 
+
+# plot prey (X.simu4) against time (tset2)
+plot(x = tset3, y = X.simu8,
+     type = 'l', las = 1, lwd = 2, col = Xcol,
+     xlab = 'Time', ylab = 'Density',
+     ylim = c(0, 65))
+
+# plot predator (P.simu4) against time (tset2)
+lines(x = tset3, y = P.simu8,
+      lwd = 2, col = Pcol)
+
+# add a legend
+legend(x = 170, y = 65, 
+       lwd = 2,
+       legend = c('Prey', 'Predator'),
+       col = c(Xcol, Pcol))
+
+# add vertical lines to indicate where hunting stopped
+abline(v = t_stophunt, lty = 2, col = Pcol)
+abline(v = t_stopnew, lty = 3, col = Xcol)
 
 
 
