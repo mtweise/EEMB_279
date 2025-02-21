@@ -1,6 +1,6 @@
 ---
 title: "Lab 6 (week 7) - What mediates coexistence?"
-author: 'your name here'
+author: 'Mads'
 output: 
   html_document: # PLEASE DO NOT CHANGE THIS
     toc: true # PLEASE DO NOT CHANGE THIS
@@ -48,23 +48,23 @@ The second mechanism will be "top-down" -- predator-mediated coexistence.
 First, let's set up the resource's parameters.
 
 ```{r}
-r <- .5		# 
-K <- 100	# 
+r <- .5		# growth rate of resource R
+K <- 100	# carrying capacit yof resource R
 ```
 
 Second, let's set up the biological parameters for competitor N.
 
 ```{r}
-a_N <- 0.2	# 
-e <- 0.05	  # 
-l_N <- 0.01	# 
+a_N <- 0.2	# attack rate of our nurse sharks
+e <- 0.05	  # conversion efficiency
+l_N <- 0.01	# death rate of nurse sharks
 ```
 
 Third, let's set up competitor M to be the same as competitor N, except for having a 50% higher affinity/attack rate.
 
 ```{r}
-a_M <- a_N*1.5  #
-l_M <- l_N      #
+a_M <- a_N*1.5  # attack rate of morays is bigger than that of nurse sharks
+l_M <- l_N      # but death rate is the same
 ```
 
 ## b. Calculating Tilman's R\* for each species
@@ -83,6 +83,7 @@ R^* &= \frac{l_N}{e a_N}
 $$
 
 ```{r}
+#as a goes up Rstar goes down. we hypothesize that moray will have smaller Rstar than nurse shark bc its attack rate is larger
 Rstar_N <- l_N/e/a_N
 Rstar_N
 Rstar_M <- l_M/e/a_M
@@ -90,6 +91,7 @@ Rstar_M
 ```
 
 Species M has a lower $R^*$ than species N. If this is the case, which species is the **competitive dominiant**? Write your prediction below:
+M
 
 ## c. Checking our prediction with a simulation
 
@@ -163,10 +165,10 @@ legend(x = 8000, y = 1, legend = c('N', 'M'), lwd = 5, col = c(Ncol, Mcol))
 Check to see if your prediction was correct. The 'tail' function can also help you check whether you've reached equilibrium.
 
 ```{r}
-# 
+# check if rabbitfish are at equilibrium
 tail(R.simu1) 
 
-# 
+# lets remember our Rstar for morays 
 Rstar_M
 ```
 
@@ -175,6 +177,43 @@ Rstar_M
 Alter the parameters such that N and M differ ONLY in mortality rates (`a_N` = `a_M`, but `l_N` is different from `l_M`).
 
 ```{r}
+a_N1 <- 0.2	# attack rate of our nurse sharks
+e1 <- 0.05	  # conversion efficiency
+l_N1 <- 0.01	# death rate of nurse sharks
+
+a_M1 <- a_N1 # attack rate of morays is bigger than that of nurse sharks
+l_M1 <- l_N1*1.5      # but death rate is the same
+
+
+# create holding vectors and fill initial conditions
+R.simu2 <- NaN*tset1; R.simu2[1] <- 0.5
+N.simu2 <- NaN*tset1; N.simu2[1] <- 1
+M.simu2 <- NaN*tset1; M.simu2[1] <- 1
+
+# for each timestep
+for(i in 2:length(tset1)){
+  # calculate change in time
+	dt <- tset1[i]-tset1[i-1]
+	
+	# store placeholder variables
+	R <- R.simu2[i-1]
+	N <- N.simu2[i-1]
+	M <- M.simu2[i-1]
+	
+	# calculate change in resource level and population size 
+	dR <- ( r*R*(1-R/K) - a_N1*N*R - a_M1*M*R )*dt
+	dN <- ( e1*a_N1*N*R - l_N1*N )*dt
+	dM <- ( e1*a_M1*M*R - l_M1*M )*dt
+	
+	# calculate total resource level and population size
+	R.simu2[i] <- R + dR
+	N.simu2[i] <- N + dN
+	M.simu2[i] <- M + dM
+}
+
+head(N.simu2)
+tail(N.simu2)
+
 
 ```
 
@@ -184,16 +223,30 @@ Alter the parameters such that N and M differ ONLY in mortality rates (`a_N` = `
 
 ```{r}
 # R* for species N
-
+Rstar_N <- l_N1/e1/a_N1
+Rstar_N
 
 # R* for species M
-
+Rstar_M <- l_M1/e1/a_M1
+Rstar_M
 ```
 
 3.  Check your prediction with a simulation and plot the result. Use `tset1` for your timesteps, and remember this is your **second** simulation (so your `.simu` number should be...)\
 
 ```{r}
+# plot resource as a function of time
+plot(x = tset1, y = R.simu2,
+     type = 'l', las = 1, lwd = 2, col = Rcol,
+     xlab = 'Time', ylab = 'Resource')
 
+# plot population size of M and N as a function of time
+plot(x = tset1, y = M.simu2,
+     type = 'l', las = 1, lwd = 2, col = Mcol,
+     xlab = 'Time', ylab = 'Population Size',
+     ylim = c(0, max(c(max(M.simu2,N.simu2)))))
+lines(x = tset1, y = N.simu2,
+      lwd = 2, col = Ncol)
+legend(x = 8000, y = 1, legend = c('N', 'M'), lwd = 5, col = c(Ncol, Mcol))
 ```
 
 # 2. Coexistence via niche partitioning
@@ -230,6 +283,8 @@ K <- 100	# Carrying capacity of the resources
 Then we'll specify $N$'s biological parameters, assuming $N$ prefers resource $S$.
 
 ```{r}
+#rabbitfish = 'a'
+#shrimp = 'b'
 a_N <- 0.01	# Affinity or attack rate of N for/on the resource R
 b_N <- 0.2	# Affinity or attack rate of N for/on the resource S
 e <- 0.05	# Conversion efficiency of resources into N
@@ -239,8 +294,8 @@ l_N <- 0.01	# Mortality rate of N
 We can now calculate an $R^*$ and an $S^*$.
 
 ```{r}
-Rstar_N <- l_N/e/a_N
-Sstar_N <- l_N/e/b_N
+Rstar_N <- l_N/e/a_N #death rate over (conversion effic *attack on rabbitfish)
+Sstar_N <- l_N/e/b_N #death rate over (conversion effic *attack on shrimp)
 Rstar_N
 Sstar_N
 ```
@@ -331,16 +386,19 @@ Sstar_N
 ### Think, Pair, Share 2
 
 1.  Do these equilibria make sense? Explain your findings from an ecological perspective.
+Shrimp is being consumed more so there is less S than R. This makes sense because the death rate is higher for the shrimp because of the nurse shark's feeding preferences.
 
 2.  Describe the interaction between resources S and R. Is there an ecological term you would use to describe this?
+Apparent competition
+The presence of one resource depletes teh presence of the other so 
 
 ## c. Introducing competitor M
 
 As before, let's imagine that $M$ has the greater affinity for resource $R$.
 
 ```{r}
-a_M <- a_N*50
-l_M <- l_N
+a_M <- a_N*50 #attack of moray on rabbitfish
+l_M <- l_N# same death rate
 ```
 
 In order for coexistence to be possible, do you predict that $M$ must have a *higher* or *lower* affinity for the second resource, $S$? Write your prediction below:
@@ -348,7 +406,7 @@ In order for coexistence to be possible, do you predict that $M$ must have a *hi
 Let's set $b_M = b_N*0.02$ so that $M$ has a lower affinity for resource $S$ than resource $R$.
 
 ```{r}
-b_M <- b_N*0.02	# 
+b_M <- b_N*0.02	# morats arent good at catching shrimp
 ```
 
 Let's check affinity parameters among our competitors.
@@ -451,18 +509,94 @@ legend(x = 8000, y = 4,
 1.  Use the `tail()` function to compare the equilibrium resource levels to the $R^*$ and $S^*$ values for each competitor.
 
 ```{r}
+#rabbitfish equi level
+tail(R.simu5) #equi
 
+#shrimp equi level
+tail(S.simu5) #equi
+
+#shrimp time
+Sstar_M
+Sstar_N #matches equi value of shrimp, thus nursesharks are driving the shrimp
+
+
+#rabbitfish time
+Rstar_M
+Rstar_N
 ```
 
 2.  How would you interpret these results biologically?
+Consumer N prefers and is therefore limited by resource S and has a lower S*.
+Nursesharks deplete shrimp to its S* of 1 and competitively exclude morays on shrimp (morays can't survive on the shrimp).
+
+Morays aprefer and are limited by rabbitfish and have a lower R* for the rabbitfish. Morays deplete rabbitfish to the R* of 0.4 and comeptitvely exclude nursesharks on rabbitfish.
+
 
 3.  Run an additional simulation in which only species M is present. (You can do this in two ways: by using code from Part 2B and replacing species N with species M, or by using code from Part 2E and setting the initial population size of N to 0.)\
 
 ```{r}
 
+# creating holding vectors and filling initial conditions
+R.simu6 <- NaN*tset5; R.simu6[1] <- 20
+S.simu6 <- NaN*tset5; S.simu6[1] <- 20
+N.simu6 <- NaN*tset5; N.simu6[1] <- 0 #no nursesharks to start
+M.simu6 <- NaN*tset5; M.simu6[1] <- 1
+
+# for each timestep
+for(i in 2:length(tset5)){
+  # calculate change in time
+	dt <- tset5[i]-tset5[i-1]
+	
+	# store placeholder variables
+	R <- R.simu6[i-1]
+	S <- S.simu6[i-1]
+	N <- N.simu6[i-1]
+	M <- M.simu6[i-1]
+	
+	# calculate change in resource level and population size
+	dR <- ( r*R*(1-R/K) - a_N*N*R - a_M*M*R )*dt
+	dS <- ( r*S*(1-S/K) - b_N*N*S - b_M*M*S )*dt
+	dN <- ( e*N*(a_N*R+b_N*S) - l_N*N )*dt
+	dM <- ( e*M*(a_M*R+b_M*S) - l_M*M )*dt
+	
+	# calculate total resource level and population size
+	R.simu6[i] <- R + dR
+	S.simu6[i] <- S + dS
+	N.simu6[i] <- N + dN	
+	M.simu6[i] <- M + dM
+}
+# plot resource as a function of time
+plot(x = tset5, y = R.simu6,
+     type = 'l', las = 1, lwd = 2, col = Rcol,
+     xlab = 'Time', ylab = 'Resource', 
+     ylim = c(0, 100))
+lines(x = tset5,y = S.simu6,
+      lwd = 2, col = Scol)
+legend(x = 8000, y = K/5, legend = c('R', 'S'), lwd = 2, col = c(Rcol, Scol))
+
+# store a color for M
+Mcol <- 'seagreen'
+
+
+# plot M and N as a function of time
+plot(x = tset5, y = M.simu6,
+     type = 'l', las = 1, lwd = 2, col = Mcol, 
+     ylab ='Population Size', xlab = 'Time', 
+     ylim = c(0, max(c(max(M.simu6, N.simu6)))))
+lines(x = tset5, y = N.simu6,
+      lwd = 2, col = Ncol)
+legend(x = 8000, y = 4, 
+       legend = c('N', 'M'), 
+       lwd = 2, col = c(Ncol, Mcol))
+
 ```
 
 4.  Compare your N-only, M-only, and two-competitor simulations by plotting:\
+
+Note to self
+N_only- simu3 red
+M_only- simu 6 orange
+Both- simu 5 yellow
 
 ```{=html}
 <!-- -->
@@ -470,19 +604,50 @@ legend(x = 8000, y = 4,
 a.  resource R as a function of time for the N only, M only, and N and M scenarios:
 
 ```{r}
+# plot resource as a function of time
+plot(x = tset3, y = R.simu3, #nurse shark only 
+     type = 'l', las = 1, lwd = 2, col = 'red',
+     xlab = 'Time', ylab = 'Resource', 
+     ylim = c(0, 100))
+lines(x = tset5,y = R.simu6,#moray only
+      lwd = 2, col = 'orange')
+lines(x = tset5,y = R.simu5,#both
+      lwd = 2, col = 'yellow')
+legend(x = 'topright', legend = c('N only', 'M only', 'both N and M'), lwd = 2, col = c('red', 'orange', 'yellow'))
+
 
 ```
 
 b.  resource S as a function of time for the N only, M only, and N and M scenarios:
 
 ```{r}
-
+# plot S as a function of time
+plot(x = tset3, y = S.simu3, #nurse shark only 
+     type = 'l', las = 1, lwd = 2, col = 'red',
+     xlab = 'Time', ylab = 'Resource', 
+     ylim = c(0, 100))
+lines(x = tset5,y = S.simu6,#moray only
+      lwd = 2, col = 'orange')
+lines(x = tset5,y = S.simu5,#both
+      lwd = 2, col = 'yellow')
+legend(x = 'topright', legend = c('N only', 'M only', 'both N and M'), lwd = 2, col = c('red', 'orange', 'yellow'))
 ```
 
 c.  population sizes as a function of time for the N only, M only, and N and M scenarios:
 
 ```{r}
-
+# plot N as a function of time
+plot(x = tset3, y = N.simu3, #nurse shark only 
+     type = 'l', las = 1, lwd = 2, col = 'red',
+     xlab = 'Time', ylab = 'Consumer', 
+     ylim = c(0, 100))
+lines(x = tset5,y = M.simu6,#moray only
+      lwd = 2, col = 'orange')
+lines(x = tset5,y = N.simu5,#both
+      lwd = 2, col = 'yellow')
+lines(x = tset5,y = M.simu5,#both
+      lwd = 2, col = 'blue')
+legend(x = 'topright', legend = c('N only', 'M only', 'Nurse sharks both N and M', 'Moray both N and M'), lwd = 2, col = c('red', 'orange', 'yellow', 'blue'))
 ```
 
 For which do you observe the highest equilibrium population sizes of each competitor? The highest resource levels? Describe your results.
@@ -548,10 +713,14 @@ legend(x = 8000, y = 1, legend = c('N', 'M'), lwd = 5, col = c(Ncol, Mcol))
 ### Think, Pair, Share 4
 
 1.  Make a hypothesis about the strength of predation on species N vs. species M that would allow for coexistence of M and N.
+Moray eels need a stronger predating force to balance their 
 
 2.  Come up with a real-world example of such a predator. (Hint: Think about 'keystone species.')
+Sea otter/ urchin/ abalone
 
 3.  How do you expect the presence of a predator to affect the availability of the resource, R? (Hint: Think about 'trophic cascades.')
+
+we'll see more rabitfish with the addition of the person predator
 
 ## b. Simulating predation
 
@@ -599,13 +768,53 @@ for(i in 2:length(tset7)){
 ```
 
 ```{r}
+#EDIT THIS ONE
+#modify dn and dM as well as equation for dP
+tset7 <- seq(from = 0, to = 1000000, length.out = 10002000)
 
+# create holding vectors and fill initial conditions
+R.simu7 <- NaN*tset7; R.simu7[1] <- 0.5
+N.simu7 <- NaN*tset7; N.simu7[1] <- 1
+M.simu7 <- NaN*tset7; M.simu7[1] <- 1
+P.simu7 <- NaN*tset7; P.simu7[1] <- 1 #add
+
+# for each timestep
+for(i in 2:length(tset7)){
+  # calculate change in time
+	dt <- tset7[i]-tset7[i-1]
+	
+	# store placeholder variables
+	R <- R.simu7[i-1]
+	N <- N.simu7[i-1]
+	M <- M.simu7[i-1]
+	P <- P.simu7[i-1] #add
+	
+	# calculate change in resource level and population size 
+	dR <- ( r*R*(1-R/K) - a_N*N*R - a_M*M*R )*dt #no change necessary
+	dN <- ( e*a_N*N*R - l_N*N -g_N*N*P )*dt #add in predation on nurse sharks
+	dM <- ( e*a_M*M*R - l_M*M -g_M*M*P)*dt #add 
+	dP <- (c*P*(g_N*N+ g_M*M)-d_P*P)*dt
+	
+	# calculate total resource level and population size
+	R.simu7[i] <- R + dR
+	N.simu7[i] <- N + dN
+	M.simu7[i] <- M + dM
+	P.simu7[i] <- P + dP #add p here
+}
 
 ```
 
 Check to make sure you're at equilibrium using the `tail()` function:
 
 ```{r}
+
+
+#nurse shark equi level
+tail(N.simu7) #equi
+
+#moray eel equi level
+tail(M.simu7) #equi
+
 
 ```
 
@@ -618,22 +827,26 @@ Mcol <- 'seagreen'
 Pcol <- 'grey22'
 
 # plot R in new simulation
-plot(x = tset1, y = R.simu1,
+plot(x = tset7, y = R.simu7,
      type = "l", las = 1, lwd = 2, col = Rcol,
      xlab = "Time", ylab = "Resource")
 
 # plot M in new simulation
-plot(x = tset1, y = M.simu1,
+plot(x = tset7, y = M.simu7,
      type = "l", las = 1, lwd = 2, col = Mcol, 
      xlab = "Time", ylab = "Population size",
-     ylim = c(0, max(c(max(M.simu1, N.simu1)))))
+     ylim = c(0, max(c(max(M.simu7, N.simu7)))))
 # plot N in new simulation
-lines(x = tset1, y = N.simu1, lwd = 2, col = Ncol)
+lines(x = tset7, y = N.simu7, lwd = 2, col = Ncol)
 legend(x = 8000, y = 1,
        legend = c("N", "M"),
        lwd = 2, col = c(Ncol, Mcol))
 
 # plot P in new simulation
+plot(x = tset7, y = P.simu7,
+     type = "l", las = 1, lwd = 2, col = Pcol, 
+     xlab = "Time", ylab = "Predator size",
+     ylim = c(0, max(c(max(M.simu7, N.simu7)))))
 
 ```
 
