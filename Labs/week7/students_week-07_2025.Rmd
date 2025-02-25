@@ -930,7 +930,7 @@ Rstar_Mhw
 
 Based on your calculation, predict which species should "win" competition.
 
-**Answer in words here, be concise**: Since species M has a lower R* than species N, then I anticipate species M being competitve dominant and the "winner". While I doubled N's attack rate, I also quadruppled its death rate. This led to its R* being higher than M's. 
+**Answer in words here, be concise**: Since species M has a lower R* than species N, then I anticipate species M being competitve dominant and the "winner". While I doubled N's attack rate, I also quadruppled its death rate. This led to its R* being higher than M's.
 
 = /1 point total
 
@@ -1076,7 +1076,7 @@ Make three bifurcation diagrams showing the stable equilibria for R, N, and M as
 = /9 points
 
 ```{r}
-Kset <- seq(from = 0, to = 1000,length.out = 20) #densities I want to look at
+Kset <- seq(from = 0, to = 20,length.out = 50) #densities I want to look at
 
 Rstarset <- NaN*Kset
 Nstarset <- NaN*Kset
@@ -1088,22 +1088,22 @@ for(j in 1:length(Kset)){
 	
 	# create a holding vector for predator and prey populations
 	# and fill with initial conditions
-	R.simuhw <- NaN*tset1
-	R.simuhw[1] <- 1
-	N.simuhw <- NaN*tset1
-	N.simuhw[1] <- 1  
-	M.simuhw <- NaN*tset1
-	M.simuhw[1] <- 1
-	P.simu <- NaN*tset1 
+	R.simuhw6 <- NaN*tset1
+	R.simuhw6[1] <- 1
+	N.simuhw6 <- NaN*tset1
+	N.simuhw6[1] <- 1  
+	M.simuhw6 <- NaN*tset1
+	M.simuhw6[1] <- 1
+	P.simu6 <- NaN*tset1 
 	
 	for(i in 2:length(tset1)){
 	  # calculating change in time
 		dt <- tset1[i]-tset1[i-1]
 		
 		# storing temporary variables
-		R <- R.simuhw[i-1]
-		N <- N.simuhw[i-1]
-		M <- M.simuhw[i-1]
+		R <- R.simuhw6[i-1]
+		N <- N.simuhw6[i-1]
+		M <- M.simuhw6[i-1]
 		
 			# calculate change in resource level and population size 
 	dR <- ( r*R*(1-R/K) - a_Nhw*N*R - a_Mhw*M*R )*dt
@@ -1111,29 +1111,40 @@ for(j in 1:length(Kset)){
 	dM <- ( ehw*a_Mhw*M*R - l_Mhw*M )*dt
 	
 	# calculate total resource level and population size
-	R.simuhw2[i] <- R + dR
-	N.simuhw2[i] <- N + dN
-	M.simuhw2[i] <- M + dM	
+	R.simuhw6[i] <- R + dR
+	N.simuhw6[i] <- N + dN
+	M.simuhw6[i] <- M + dM	
 	}
 	
 	# storing last population size (equilibrium population size) in holding vector
-	Rstarset[j] <- R.simuhw[length(tset1)]
-	Nstarset[j] <- N.simuhw[length(tset1)]
-	Mstarset[j] <- M.simuhw[length(tset1)]
+	Rstarset[j] <- R.simuhw6[length(tset1)]
+	Nstarset[j] <- N.simuhw6[length(tset1)]
+	Mstarset[j] <- M.simuhw6[length(tset1)]
 	
 }
 
 head(Rstarset)
-
+head(Nstarset)
+head(Mstarset)
 
 #########################
 #R plot
 # plot stable equilibria of R against K
 plot(x = Kset, y = Rstarset,
-     type = 'l', lwd = 2, col = Pcol, las = 1,
+     type = 'l', lwd = 2, col = Rcol, las = 1,
      xlab = 'Carrying capacity of shared resource, K', ylab = 'Stable equilbria of R')
 
+#N plot
+# plot stable equilibria of N against K
+plot(x = Kset, y = Nstarset,
+     type = 'l', lwd = 2, col = Ncol, las = 1,
+     xlab = 'Carrying capacity of shared resource, K', ylab = 'Stable equilbria of N')
 
+#M plot
+# plot stable equilibria of M against K
+plot(x = Kset, y = Mstarset,
+     type = 'l', lwd = 2, col = Mcol, las = 1,
+     xlab = 'Carrying capacity of shared resource, K', ylab = 'Stable equilbria of M')
 ```
 
 # HW 7
@@ -1159,6 +1170,6 @@ Describe your bifurcation diagrams from Question 6 in words. What is the ecologi
 
 If there were a predator in your system, which prey item would it have to prefer in order for the two species to coexist?
 
-**Write answer here, please be concise!**
+**It would have to prefer species M (moray eel) **
 
 = /1 point total
