@@ -864,6 +864,7 @@ Set up any variables you need here.
 
 ```{r}
 
+
 ```
 
 # HW 1
@@ -873,19 +874,33 @@ Set up any variables you need here.
 Using the model from Part One (two competitors, one resource), alter the parameters such that a_N \> a_M, and l_N \> l_M. List your parameters here. **Print the values of a_N, a_M, l_N, and l_M.** Is a_N greater than a_M, and is l_N greater than l_M? Double check by running `a_N > a_M` and `l_N > l_M` and making sure both of those yield the output `TRUE`.
 
 ```{r}
-# your work here
+a_Mhw <- 0.2 # attack rate of morays 
+l_Mhw <- 0.01      # but death rate is the same
+
+a_Nhw <- 2*a_Mhw	# attack rate of our nurse sharks is bigger than that of morays
+ehw <- 0.05	  # conversion efficiency
+l_Nhw <- 4*l_Mhw	# death rate of nurse sharks
+
+
 ```
 
 ```{r}
 # output the parameter values here a_N, a_M, l_N, and l_M
 # make sure they print in your knitted version!
+a_Nhw
+l_Nhw
+a_Mhw
+l_Mhw
 ```
 
 ```{r}
 # Double check by running `a_N > a_M` and `l_N > l_M` and making sure both of those yield the output `TRUE`
+a_Nhw > a_Mhw
+l_Nhw > l_Mhw
 ```
 
 **Answer in words here, be concise: Is a_N greater than a_M, and is l_N greater than l_M?**
+Yes, a_N is greater than a_M and l_N is greater than l_M.
 
 = /2 points total
 
@@ -896,12 +911,16 @@ Using the model from Part One (two competitors, one resource), alter the paramet
 Calculate R\* for both species N and species M.
 
 ```{r}
-# your work here
+#calculate R*
+Rstar_Nhw <- l_Nhw/ehw/a_Nhw
+Rstar_Nhw
+Rstar_Mhw <- l_Mhw/ehw/a_Mhw
+Rstar_Mhw
 ```
 
-**Answer in words here**: R\* for N is: 
+**Answer in words here**: R\* for N is: 2
 
-**Answer in words here**: R\* for M is: 
+**Answer in words here**: R\* for M is: 1
 
 = /2 points total
 
@@ -911,7 +930,7 @@ Calculate R\* for both species N and species M.
 
 Based on your calculation, predict which species should "win" competition.
 
-**Answer in words here, be concise**:
+**Answer in words here, be concise**: Since species M has a lower R* than species N, then I anticipate species M being competitve dominant and the "winner". While I doubled N's attack rate, I also quadruppled its death rate. This led to its R* being higher than M's. 
 
 = /1 point total
 
@@ -928,7 +947,55 @@ Run a simulation and show timeseries plot(s) to confirm your prediction.
 = /8 points total
 
 ```{r}
-# your work here
+# create holding vectors and fill initial conditions
+R.simuhw <- NaN*tset1; R.simuhw[1] <- 0.5
+N.simuhw <- NaN*tset1; N.simuhw[1] <- 1
+M.simuhw <- NaN*tset1; M.simuhw[1] <- 1
+
+# for each timestep
+for(i in 2:length(tset1)){
+  # calculate change in time
+	dt <- tset1[i]-tset1[i-1]
+	
+	# store placeholder variables
+	R <- R.simuhw[i-1]
+	N <- N.simuhw[i-1]
+	M <- M.simuhw[i-1]
+	
+	# calculate change in resource level and population size 
+	dR <- ( r*R*(1-R/K) - a_Nhw*N*R - a_Mhw*M*R )*dt
+	dN <- ( ehw*a_Nhw*N*R - l_Nhw*N )*dt
+	dM <- ( ehw*a_Mhw*M*R - l_Mhw*M )*dt
+	
+	# calculate total resource level and population size
+	R.simuhw[i] <- R + dR
+	N.simuhw[i] <- N + dN
+	M.simuhw[i] <- M + dM
+}
+
+head(N.simuhw)
+tail(N.simuhw)
+
+################################
+#Plot
+# store colors for R, N, and M - feel free to use your own!
+Rcol <- 'deepskyblue4'
+Ncol <- 'coral'
+Mcol <- 'seagreen'
+
+# plot resource as a function of time
+plot(x = tset1, y = R.simuhw,
+     type = 'l', las = 1, lwd = 2, col = Rcol,
+     xlab = 'Time', ylab = 'Resource')
+
+# plot population size of M and N as a function of time
+plot(x = tset1, y = M.simuhw,
+     type = 'l', las = 1, lwd = 2, col = Mcol,
+     xlab = 'Time', ylab = 'Population Size',
+     ylim = c(0, max(c(max(M.simuhw,N.simuhw)))))
+lines(x = tset1, y = N.simuhw,
+      lwd = 2, col = Ncol)
+legend(x = 8000, y = 1, legend = c('N', 'M'), lwd = 5, col = c(Ncol, Mcol))
 
 ```
 
@@ -938,6 +1005,9 @@ Run a simulation and show timeseries plot(s) to confirm your prediction.
 
 Try some different initial conditions. (**Hint:** where do you fill in initial conditions before running your simulation?) Do you believe that the system has only one stable equilibrium (i.e. do R, N, and M equilibrate to the same values regardless of starting conditions)?
 
+I do believe that the system has only one stable equiloibrium. I tried multiple different R, N, and M initial conditions and they all ended up at the same equilibria. Even though they looked slightly different getting to that equilibria, they reached the same equilibria eventually.
+
+
 /2 points for a simulation with different initial conditions\
 /2 points for either a plot or tail values to find stable equilibria\
 /1 point for answer\
@@ -945,7 +1015,51 @@ Try some different initial conditions. (**Hint:** where do you fill in initial c
 = /7 points total
 
 ```{r}
-# your work here
+# create holding vectors and fill initial conditions
+R.simuhw2 <- NaN*tset1; R.simuhw2[1] <- 0.5
+N.simuhw2 <- NaN*tset1; N.simuhw2[1] <- 5
+M.simuhw2 <- NaN*tset1; M.simuhw2[1] <- 1
+
+# for each timestep
+for(i in 2:length(tset1)){
+  # calculate change in time
+	dt <- tset1[i]-tset1[i-1]
+	
+	# store placeholder variables
+	R <- R.simuhw2[i-1]
+	N <- N.simuhw2[i-1]
+	M <- M.simuhw2[i-1]
+	
+	# calculate change in resource level and population size 
+	dR <- ( r*R*(1-R/K) - a_Nhw*N*R - a_Mhw*M*R )*dt
+	dN <- ( ehw*a_Nhw*N*R - l_Nhw*N )*dt
+	dM <- ( ehw*a_Mhw*M*R - l_Mhw*M )*dt
+	
+	# calculate total resource level and population size
+	R.simuhw2[i] <- R + dR
+	N.simuhw2[i] <- N + dN
+	M.simuhw2[i] <- M + dM
+}
+
+head(N.simuhw)
+tail(N.simuhw)
+
+################################
+#Plot
+
+# plot resource as a function of time
+plot(x = tset1, y = R.simuhw2,
+     type = 'l', las = 1, lwd = 2, col = Rcol,
+     xlab = 'Time', ylab = 'Resource')
+
+# plot population size of M and N as a function of time
+plot(x = tset1, y = M.simuhw2,
+     type = 'l', las = 1, lwd = 2, col = Mcol,
+     xlab = 'Time', ylab = 'Population Size',
+     ylim = c(0, max(c(max(M.simuhw2,N.simuhw2)))))
+lines(x = tset1, y = N.simuhw2,
+      lwd = 2, col = Ncol)
+legend(x = 8000, y = 1, legend = c('N', 'M'), lwd = 5, col = c(Ncol, Mcol))
 ```
 
 # HW 6
@@ -962,7 +1076,64 @@ Make three bifurcation diagrams showing the stable equilibria for R, N, and M as
 = /9 points
 
 ```{r}
-# your work here
+Kset <- seq(from = 0, to = 1000,length.out = 20) #densities I want to look at
+
+Rstarset <- NaN*Kset
+Nstarset <- NaN*Kset
+Mstarset <- NaN*Kset
+
+for(j in 1:length(Kset)){
+  # assign the value of Y
+	K <- Kset[j] 
+	
+	# create a holding vector for predator and prey populations
+	# and fill with initial conditions
+	R.simuhw <- NaN*tset1
+	R.simuhw[1] <- 1
+	N.simuhw <- NaN*tset1
+	N.simuhw[1] <- 1  
+	M.simuhw <- NaN*tset1
+	M.simuhw[1] <- 1
+	P.simu <- NaN*tset1 
+	
+	for(i in 2:length(tset1)){
+	  # calculating change in time
+		dt <- tset1[i]-tset1[i-1]
+		
+		# storing temporary variables
+		R <- R.simuhw[i-1]
+		N <- N.simuhw[i-1]
+		M <- M.simuhw[i-1]
+		
+			# calculate change in resource level and population size 
+	dR <- ( r*R*(1-R/K) - a_Nhw*N*R - a_Mhw*M*R )*dt
+	dN <- ( ehw*a_Nhw*N*R - l_Nhw*N )*dt
+	dM <- ( ehw*a_Mhw*M*R - l_Mhw*M )*dt
+	
+	# calculate total resource level and population size
+	R.simuhw2[i] <- R + dR
+	N.simuhw2[i] <- N + dN
+	M.simuhw2[i] <- M + dM	
+	}
+	
+	# storing last population size (equilibrium population size) in holding vector
+	Rstarset[j] <- R.simuhw[length(tset1)]
+	Nstarset[j] <- N.simuhw[length(tset1)]
+	Mstarset[j] <- M.simuhw[length(tset1)]
+	
+}
+
+head(Rstarset)
+
+
+#########################
+#R plot
+# plot stable equilibria of R against K
+plot(x = Kset, y = Rstarset,
+     type = 'l', lwd = 2, col = Pcol, las = 1,
+     xlab = 'Carrying capacity of shared resource, K', ylab = 'Stable equilbria of R')
+
+
 ```
 
 # HW 7
