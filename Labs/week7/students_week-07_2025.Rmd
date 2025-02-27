@@ -770,7 +770,7 @@ for(i in 2:length(tset7)){
 ```{r}
 #EDIT THIS ONE
 #modify dn and dM as well as equation for dP
-tset7 <- seq(from = 0, to = 1000000, length.out = 10002000)
+tset7 <- seq(from = 0, to = 10000, length.out = 100020)
 
 # create holding vectors and fill initial conditions
 R.simu7 <- NaN*tset7; R.simu7[1] <- 0.5
@@ -1084,7 +1084,7 @@ Mstarset <- NaN*Kset
 
 for(j in 1:length(Kset)){
   # assign the value of Y
-	K <- Kset[j] 
+	K.new <- Kset[j] 
 	
 	# create a holding vector for predator and prey populations
 	# and fill with initial conditions
@@ -1106,7 +1106,7 @@ for(j in 1:length(Kset)){
 		M <- M.simuhw6[i-1]
 		
 			# calculate change in resource level and population size 
-	dR <- ( r*R*(1-R/K) - a_Nhw*N*R - a_Mhw*M*R )*dt
+	dR <- ( r*R*(1-R/K.new) - a_Nhw*N*R - a_Mhw*M*R )*dt
 	dN <- ( ehw*a_Nhw*N*R - l_Nhw*N )*dt
 	dM <- ( ehw*a_Mhw*M*R - l_Mhw*M )*dt
 	
@@ -1157,11 +1157,11 @@ Describe your bifurcation diagrams from Question 6 in words. What is the ecologi
 
 **Write answer here, please be as concise as you can! Bullet points are acceptable**
 
--   example bullet point here, replace text but do not change the spacing or -
+-   As carrying capacity of teh shared resource increases, the share resource reaches its R* value quickly before leveling off. This makes sense because even though carrying capacity is increasing, it is still limited by top down pressures -
 
--   another bullet point
+-   Similarly the equilibria of N levels off as the shared resource maintains that R* value even though carrying capacity has increased. This makes sense because if there is suddenly an excess of the shared resource, that allows N to consume more to drive it back down to R*.
 
--   another bullet point
+-   Similarly the equilibria of N levels off as the shared resource maintains that R* value even though carrying capacity has increased. This makes sense because if there is suddenly an excess of the shared resource, that allows M to consume more to drive it back down to R*.
 
 
 # HW 8
