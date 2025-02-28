@@ -1,0 +1,1436 @@
+---
+title: "Lab 7 - Mutualism and co-invasion"
+author: 'Mads'
+output: 
+  html_document: # PLEASE DO NOT CHANGE THIS
+    toc: true # PLEASE DO NOT CHANGE THIS
+    toc_float: true # PLEASE DO NOT CHANGE THIS
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Announcements -- 
+Midterm 2 Review 
+ 
+Next lab (Week 9): final project work and help with coding & analysis
+
+Week 10 lab: final project presentations 
+
+# Lab overview
+This week, we have been talking about mutualistic interactions between species. These are +/+ interactions, in which each species enhances the other's growth.  
+
+ Of course, all species interactions exist on a spectrum: Interactions may vary in their degree of benefit, and, in some cases, depending on environmental context, may become non-beneficial or even harmful (e.g., parasitism).  
+
+ Neuhauser & Fargione (2004) developed a model that can account for this gradient from mutualism (+/+) to parasitism (+/-).  
+
+ They model a host, H, and a 'partner or parasite,' P, who affect one another's growth in the following ways: (1) P enhances H's carrying capacity, with a per-capita 'gain' level of gamma, (2) H supports P's growth by increasing P's birth rate at a per-capita rate b, and (3) P may also negatively impact H by 'exploitation' at a per-capita rate a.  
+
+ The full set of equations is:
+$$
+\begin{align}
+\frac{dH}{dt} &= r H ( 1 - \frac{H}{K+\gamma P} ) - a H P \\ 
+\newline
+\frac{dP}{dt} &= b H P - m P (1+eP) \\ 
+\end{align}
+$$
+ 
+**Note:** we've made a change to the NH04 model's notation, replacing the 'death rate' $d$ of $P$ with the mortality constant $m$. This change was just made to improve clarity of notation (i.e., to make it obvious that $mP$ was not a derivative).  
+
+ In this lab, you will be exploring:  
+	1. The effect of changing the direction and strength of species interactions (i.e. illustrating the gradient from mutualism to parasitism),  
+	2. How to turn this into a spatial model of two interacting species spreading across a landscape,   
+	3. How dispersal rates of each partner interact to change the speed of the "invasion wave," and  
+	4. The implications for control of the spread of non-native species.  
+
+# PART ONE: A gradient from mutualism to parasitism
+
+## a. Getting to know the model
+Let's begin by choosing some parameters, plotting the ZNGIs, checking their predictions by simulating the model's dynamics, and interpreting these predictions.
+
+```{r}
+r <- 1			# growth rate of host
+K <- 20			# carrying capacity of host
+gamma <- .5	# positive effect of P on H's carrying capacity
+a <- .01		# exploitation of H by P
+b <- 1			# growth rate of P (encompasses conversion and attack rate)
+m <- 1			# density independent mortality of P
+e <- 1			# factor weighting density dependent mortality of P
+```
+
+By setting $\frac{dH}{dt} = 0$ and $\frac{dP}{dt} = 0$, we can find four zero-net growth isoclines:  
+
+From $\frac{dH}{dt}$:  
+1. $H = 0$ or  
+2. $H = \frac{1}{r*(K + \gamma*P)*(r-a*P)}$  
+
+From $\frac{dP}{dt}$:  
+3. $P = 0$ or  
+4. $H = \frac{m}{b*(1+e*P)}$  
+
+Let's plot these ZNGIs on a **phase plane**, with $H$ on the x-axis and $P$ on the y-axis.  
+Note that even though $P$ is on the y-axis, it's easier to solve the ZNGIs - particularly the one from $\frac{dH}{dt}$ - for $H$. Therefore, we're making a vector of values for $P$ to plug in.
+
+```{r}
+# create a vector of values for P
+Pset <- seq(from = 0, to = 100)
+
+# solver for dh/dt and dp/dt zngis
+dHdt.ZNGI <- 1/r*(K+gamma*Pset)*(r-a*Pset)
+dPdt.ZNGI <- m/b*(1+e*Pset)
+```
+
+Check the output of those operations! What does `head(dHdt.ZNGI)` or `head(dPdt.ZNGI)` look like?
+```{r}
+head(dHdt.ZNGI)
+head(dPdt.ZNGI)
+```
+
+After checking our outputs, we can plot.
+```{r}
+# assign colors for H and P that we'll use throughout lab
+Hcol <- 'seagreen'
+Pcol <- 'royalblue'
+
+# plot zngi (zer onew growth isocline) for species H
+plot(x = dHdt.ZNGI, y = Pset, 
+     type = 'l', col = Hcol, lwd = 2, las = 1,
+     xlim = c(0, max(c(dHdt.ZNGI, dPdt.ZNGI)))/2, 
+     xlab = 'H', ylab = 'P',
+     main = "H and P phase plane")
+
+#  plot zngi for species P
+lines(x = dPdt.ZNGI, y = Pset, 
+      lwd = 2, col = Pcol)
+
+# plot boring zngis, h=0 and p=0
+abline(v = 0, lwd = 2, col = Hcol)
+abline(h = 0, lwd = 2, col= Pcol)
+```
+
+### Think, Pair, Share 1
+
+(1) How many equilibria do you see?  
+
+3
+
+(2) Make a prediction for the stability of each equilibrium point. (Hint: Think about the sign of dP/dt 'above' and 'below' the blue diagonal line, and dH/dt 'inside' and 'outside' of the green curve.)  
+
+
+## b. Checking predictions by performing a simulation
+
+Let's check your predictions by performing a simulation.
+```{r}
+# create a vector of timesteps to iterate over
+tset <- seq(from = 0, to = 100, length.out = 5000)
+
+# create holding vectors and store initial conditions
+H.simu1 <- NaN*tset; H.simu1[1] <- 1
+P.simu1 <- NaN*tset; P.simu1[1] <- 1
+
+# for each timestep
+for(i in 2:length(tset)){
+  # calculate change in time
+	dt <- tset[i] - tset[i-1]
+	
+	# store placeholder variables
+	H <- H.simu1[i-1]
+	P <- P.simu1[i-1]
+	
+	# calculate change in population size of H and P
+	dH <- ( r*H*(1-H/(K+gamma*P))-a*H*P )*dt
+	dP <- ( b*H*P - m*P*(1+e*P) )*dt
+	
+	# calculate total population size of H and P
+	H.simu1[i] <- H + dH
+	P.simu1[i] <- P + dP	
+}
+```
+
+Check the output of your `for()` loop! Remember: this is to make sure nothing weird is happening in the code for your loop. It is **not necessarily** a step that will tell you if your math is wrong!
+```{r}
+head(H.simu1)
+head(P.simu1)
+```
+
+Now we can plot a timeseries:
+
+```{r}
+# plot H (H.simu1) as a function of time
+plot(x = tset, y = H.simu1, 
+     col = Hcol, type = 'l', lwd = 2, las = 1,
+     xlab = 'Time', ylab = 'Population Size', 
+     main = expression("Simulation 1: H"[0]*" and P"[0]*" = 1"),
+     ylim = c(0, max(c(P.simu1, H.simu1))))
+
+# plot P (P.simu1) as a function of time
+lines(x = tset, y = P.simu1, 
+      col = Pcol, lwd=2)
+
+# create a legend
+legend(x = 60, y = K, 
+       legend = c('Host', 'Partner'), 
+       lwd = 2, 
+       col = c(Hcol, Pcol))
+```
+
+**Pro tip:** We can also check this by plotting it on the phase plane! We'll plot the trajectory of the community (i.e. the population sizes of H and P that we generated in the `for()` loop) on top of the  ZNGIs for H (in green) and P (in blue).  
+
+**Note about trajectory:** When plotting the trajectory of the community, the population sizes of H are on the x-axis and P are on the y-axis. This keeps things consistent with the phase plane!  
+
+**Note about equilibrium:** We'll also add a black dot at the end of the simulation indicating the equilibrium point. We are calling this a stable equilibrium because our timeseries simulation suggested that it was: The populations reached a stable size that didn't change over time. You should always be careful, when running simulations, to be certain that the system has 'equilibrated' before you make interpretations about its results!
+```{r}
+# assign color
+Simucol <- 'salmon'
+
+# plot ZNGI for species H
+plot(x = dHdt.ZNGI, y = Pset, 
+     type = 'l', col = Hcol, lwd = 2, las=1,
+     xlim=c(0, max(c(dHdt.ZNGI, dPdt.ZNGI)))/2, 
+     xlab = 'H (Host)', ylab = 'P (Partner)',
+     main = expression("Phase plane: H"[0]*" and P"[0]*" = 1"))
+
+# plot ZNGI for species P
+lines(x = dPdt.ZNGI, y = Pset, 
+      lwd = 2, col = Pcol)
+
+# plot ZNGIs at H = 0 and P = 0
+abline(v = 0, lwd = 2, col = Hcol)
+abline(h = 0, lwd = 2, col= Pcol)
+
+# plot simulated trajectory
+lines(x = H.simu1, y = P.simu1, 
+      col = Simucol, lwd = 2)		
+
+# add a filled equilibrium point.
+points(x = H.simu1[length(tset)], y = P.simu1[length(tset)], 
+       col = 'black', bg = 'black', pch = 21)	
+```
+
+### Think, Pair, Share 2
+(1) Run a second simulation (be sure to save your results as new vectors, `H.simu2` and `P.simu2`), simulating the population dynamics when you start from an initial condition of $H = 100$ and $P = 100$.
+
+```{r}
+# create holding vectors and store initial conditions
+H.simu2 <- NaN*tset; H.simu2[1] <- 100
+P.simu2 <- NaN*tset; P.simu2[1] <- 100
+
+# for each timestep
+for(i in 2:length(tset)){
+  # calculate change in time
+	dt <- tset[i] - tset[i-1]
+	
+	# store placeholder variables
+	H <- H.simu2[i-1]
+	P <- P.simu2[i-1]
+	
+	# calculate change in population size of H and P
+	dH <- ( r*H*(1-H/(K+gamma*P))-a*H*P )*dt
+	dP <- ( b*H*P - m*P*(1+e*P) )*dt
+	
+	# calculate total population size of H and P
+	H.simu2[i] <- H + dH
+	P.simu2[i] <- P + dP	
+}
+
+head(H.simu2)
+```
+
+(2) Plot a timeseries to check that your simulation has reached an equilibrium.
+
+```{r}
+# plot H  as a function of time
+plot(x = tset, y = H.simu2, 
+     col = Hcol, type = 'l', lwd = 2, las = 1,
+     xlab = 'Time', ylab = 'Population Size', 
+     main = expression("Simulation 1: H"[0]*" and P"[0]*" = 100"),
+     ylim = c(0, max(c(P.simu2, H.simu2))))
+
+# plot P as a function of time
+lines(x = tset, y = P.simu2, 
+      col = Pcol, lwd=2)
+
+# create a legend
+legend(x = 60, y = K, 
+       legend = c('Host', 'Partner'), 
+       lwd = 2, 
+       col = c(Hcol, Pcol))
+```
+
+(3) Add the results of your second simulation to the P vs. H phase plane. Have you reached the same equilibrium point? What does this suggest about its stability?
+
+```{r}
+# plot ZNGI for species H
+plot(x = dHdt.ZNGI, y = Pset, 
+     type = 'l', col = Hcol, lwd = 2, las=1,
+     xlim=c(0, max(c(dHdt.ZNGI, dPdt.ZNGI)))/2, 
+     xlab = 'H (Host)', ylab = 'P (Partner)',
+     main = expression("Phase plane: H"[0]*" and P"[0]*" = 1"))
+
+# plot ZNGI for species P
+lines(x = dPdt.ZNGI, y = Pset, 
+      lwd = 2, col = Pcol)
+
+# plot ZNGIs at H = 0 and P = 0
+abline(v = 0, lwd = 2, col = Hcol)
+abline(h = 0, lwd = 2, col= Pcol)
+
+# plot simulated trajectory
+lines(x = H.simu2, y = P.simu2, 
+      col = Simucol, lwd = 2)		
+
+# add a filled equilibrium point.
+points(x = H.simu2[length(tset)], y = P.simu2[length(tset)], 
+       col = 'black', bg = 'black', pch = 21)	
+```
+
+## c.  Making a bifurcation diagram with respect to 'a'
+
+The parameter $a$ is the exploitation rate of $H$ by $P$. Let's explore how changing $a$ alters the equilibrium population sizes of both $H$ and $P$.
+
+### Think, Pair, Share 3
+(1) Create a vector `aset` containing values for $a$ ranging from 0 to 0.1.  
+
+**Hint:** The longer your `aset` vector, the longer it will take you to run the calculations to make your bifurcation diagram. It's often good to start out with a short vector (e.g., `length.out = 10`) to make sure things are working. You can always increase the length to 'smooth things out' later.)
+
+```{r}
+Aset <- seq(from = 0, to = 0.1,length.out = 20) #densities I want to look at
+```
+
+(2) Make two bifurcation diagrams showing the equilibrium population sizes of $H$ and $P$ as a function of $a$.
+
+```{r}
+
+Hstarset_a <- NaN*Aset
+Pstarset_a <- NaN*Aset
+
+
+for(j in 1:length(Aset)){
+  # assign the value of Y
+	a_new <- Aset[j] 
+	
+	for(i in 2:length(tset)){
+  # calculate change in time
+	dt <- tset[i] - tset[i-1]
+	
+	# store placeholder variables
+  H <- H.simu2[i-1]
+	H.simu2[1] <- 1
+	P <- P.simu2[i-1]
+	P.simu2[1] <- 1
+	
+	# calculate change in population size of H and P
+	dH <- ( r*H*(1-H/(K+gamma*P))-a_new*H*P )*dt
+	dP <- ( b*H*P - m*P*(1+e*P) )*dt
+	
+	# calculate total population size of H and P
+	H.simu2[i] <- H + dH
+	P.simu2[i] <- P + dP
+	
+	}
+	
+	# storing last population size (equilibrium population size) in holding vector
+	Hstarset_a[j] <- H.simu2[length(tset)]
+	Pstarset_a[j] <- P.simu2[length(tset)]
+	
+}
+
+head(Hstarset_a)
+head(Pstarset_a)
+
+
+#########################
+#H plot
+# plot stable equilibria of H against a
+plot(x = Aset, y = Hstarset_a,
+     type = 'l', lwd = 2, col = Hcol, las = 1,
+     xlab = 'a', ylab = 'H (Host)')
+
+#P plot
+# plot stable equilibria of H against a
+plot(x = Aset, y = Pstarset_a,
+     type = 'l', lwd = 2, col = Pcol, las = 1,
+     xlab = 'a', ylab = 'P (Partner)')
+```
+
+(3) Interpret your bifurcation diagram in words. What happens to each population as $a$ increases? How does the equilibrium population size of $H$ compare to its carrying capacity, $K$? Add a line at host carrying capacity $K$ to your plot $H^*$ as a function of $a$.
+
+```{r}
+#as attack rate increases, host decreases
+#for P, same as above
+
+
+#H plot
+# plot stable equilibria of H against a
+plot(x = Aset, y = Hstarset_a,
+     type = 'l', lwd = 2, col = Hcol, las = 1,
+     xlab = 'a', ylab = 'H (Host)')
+
+#add abline look in key
+
+```
+
+(4) Make two bifurcation diagrams showing the equilibrium population sizes of $H$ and $P$ as a function of $b$ to illustrate the effect of increasing the slope of the non-zero partner ZNGI (as we did in lecture). Interpret your bifurcation diagram in words.  
+
+**Note:** Remember to 'reset' your parameters in this chunk (`a` is not at its default from the previous simulation).
+```{r}
+
+Bset <- seq(from = 1, to = 5,length.out = 20) #densities I want to look at
+
+Hstarset_b <- NaN*Bset
+Pstarset_b <- NaN*Bset
+
+
+for(j in 1:length(Bset)){
+  # assign the value of Y
+	b_new <- Bset[j] 
+	
+	for(i in 2:length(tset)){
+  # calculate change in time
+	dt <- tset[i] - tset[i-1]
+	
+	# store placeholder variables
+	H <- H.simu2[i-1]
+	H.simu2[1] <- 1
+	P <- P.simu2[i-1]
+	P.simu2[1] <- 1
+	
+	# calculate change in population size of H and P
+	dH <- ( r*H*(1-H/(K+gamma*P))-a*H*P )*dt
+	dP <- ( b_new*H*P - m*P*(1+e*P) )*dt
+	
+	# calculate total population size of H and P
+	H.simu2[i] <- H + dH
+	P.simu2[i] <- P + dP
+	
+	}
+	
+	# storing last population size (equilibrium population size) in holding vector
+	Hstarset_b[j] <- H.simu2[length(tset)]
+	Pstarset_b[j] <- P.simu2[length(tset)]
+	
+}
+
+head(Hstarset_b)
+head(Pstarset_b)
+
+
+#########################
+#H plot
+# plot stable equilibria of H against a
+plot(x = Bset, y = Hstarset_b,
+     type = 'l', lwd = 2, col = Hcol, las = 1,
+     xlab = 'b', ylab = 'H*')
+
+#P plot
+# plot stable equilibria of H against a
+plot(x = Bset, y = Pstarset_b,
+     type = 'l', lwd = 2, col = Pcol, las = 1,
+     xlab = 'b', ylab = 'P*')
+```
+
+## d. Choosing values of 'a' that represent 'mutualist' and 'parasite' cases
+
+For the rest of the lab, we'll be considering the case when P is either a **mutualistic partner** or a **parasite**. We'll use two values of $a$ - in the code as `a_mut` and `a_par` - to distinguish these cases:
+
+```{r}
+r <- 1			# growth rate of H
+K <- 20			# carrying capacity of H
+gamma <- .5	# positive effect of P on H's carrying capacity
+a <- .01		# exploitation of H by P
+b <- 1			# growth rate of P
+m <- 1			# density-independent mortality of P
+e <- 1			# factor weighting density-dependent mortality of P
+
+a_mut <- 0
+a_par <- 0.05
+```
+
+Let's get to know the predictions of each of these cases by plotting the trajectories on a phase plane. We'll start with the mutualist case.  
+
+First, we'll calculate our ZNGIs for H and P given that P is a mutualist.
+
+```{r}
+# calculate zngis with a_mut
+dHdt.ZNGI.mut <- 1/r*(K+gamma*Pset)*(r-a_mut*Pset)
+dPdt.ZNGI.mut <- m/b*(1+e*Pset)
+```
+
+Then, we'll simulate using a `for()` loop.
+```{r}
+# create holding vectors and store initial conditions
+H.simu.mut <- NaN*tset; H.simu.mut[1] <- 1
+P.simu.mut <- NaN*tset; P.simu.mut[1] <- 1
+
+# for each timestep
+for(i in 2:length(tset)){
+  # calculate change in time
+	dt <- tset[i] - tset[i-1]
+	
+	# store placeholder variables
+	H <- H.simu.mut[i-1]
+	P <- P.simu.mut[i-1]
+	
+	# calculate change in population size
+	dH <- ( r*H*(1-H/(K+gamma*P))-a_mut*H*P )*dt
+	dP <- ( b*H*P - m*P*(1+e*P) )*dt
+	
+	# calculate total population size
+	H.simu.mut[i] <- H + dH
+	P.simu.mut[i] <- P + dP	
+}
+```
+
+Check the output of your loop! Have you reached equilibrium?
+```{r}
+head(H.simu.mut)
+tail(H.simu.mut)
+```
+
+We'll store the equilibrium values of H and P as `Heq.mut` and `Peq.mut`.
+```{r}
+# store H and P at equilibrium
+Heq.mut <- H.simu.mut[length(tset)]
+Peq.mut <- P.simu.mut[length(tset)]
+```
+
+And then, we can plot our phase plane:
+```{r}
+# plot ZNGI for H
+plot(x = dHdt.ZNGI.mut, y = Pset, 
+     type = 'l', col = Hcol, lwd = 2, las = 1,
+     xlim = c(0, max(c(dHdt.ZNGI.mut, dPdt.ZNGI.mut)))/2, 
+     xlab = 'H', ylab = 'P',
+     main = "Phase plane: P is a mutualist")
+
+# plot ZNGI for P
+lines(x = dPdt.ZNGI.mut, y = Pset, 
+      lwd = 2, col = Pcol)
+
+# plot ZNGI at H = 0 and P = 0
+abline(v = 0, lwd = 2, col = Hcol)
+abline(h = 0, lwd = 2, col= Pcol)
+
+# plot community trajectory
+lines(x = H.simu.mut, y = P.simu.mut, 
+      col = Simucol, lwd = 2)
+
+# plot equilibrium
+points(x = Heq.mut, y = Peq.mut, 
+       pch = 21, col = 'black', bg = 'black')
+```
+
+We'll do the same for the case where P is a parasite by using `a_par` where the exploitation of H by P is _greater_.  
+
+First, we'll calculate the ZNGIs for H and P:
+
+```{r}
+dHdt.ZNGI.par <- 1/r*(K+gamma*Pset)*(r-a_par*Pset)
+dPdt.ZNGI.par <- m/b*(1+e*Pset)
+```
+
+Then, we'll simulate using a `for()` loop.
+```{r}
+# creating holding vectors and storing initial conditions
+H.simu.par <- NaN*tset; H.simu.par[1] <- 1
+P.simu.par <- NaN*tset; P.simu.par[1] <- 1
+
+# for each timestep
+for(i in 2:length(tset)){
+  # calculate change in time
+	dt <- tset[i] - tset[i-1]
+	
+	# store placeholder variables
+	H <- H.simu.par[i-1]
+	P <- P.simu.par[i-1]
+	
+	# calculate change in population size
+	dH <- ( r*H*(1-H/(K+gamma*P))-a_par*H*P )*dt
+	dP <- ( b*H*P - m*P*(1+e*P) )*dt
+	
+	# calculate total population size
+	H.simu.par[i] <- H + dH
+	P.simu.par[i] <- P + dP	
+}
+```
+
+As always, check the output of your loop. Are you at equilibrium?
+```{r}
+head(H.simu.par)
+tail(H.simu.par)
+```
+
+Store the equilibrium points as `Heq.par` and `Peq.par`.
+
+```{r}
+Heq.par <- H.simu.par[length(tset)]
+Peq.par <- P.simu.par[length(tset)]
+```
+
+And then, plot the phase plane.
+```{r}
+# plot ZNGI for H
+plot(x = dHdt.ZNGI.par, y = Pset, 
+     type = 'l', col = Hcol, lwd = 2, las = 1,
+     xlim = c(0, max(c(dHdt.ZNGI.par, dPdt.ZNGI.par)))/2, 
+     xlab = 'H', ylab = 'P',
+     main = "Phase plane: P is a parasite")
+
+# plot ZNGI for P
+lines(x = dPdt.ZNGI.par, y = Pset, 
+      lwd = 2, col = Pcol)
+
+# plot ZNGIs for H = 0 and P = 0
+abline(v = 0, lwd = 2, col = Hcol)
+abline(h = 0, lwd = 2, col= Pcol)
+
+# plot community trajectory
+lines(x = H.simu.par, y = P.simu.par, 
+      col = Simucol, lwd=2)
+
+# plot equilibrium point
+points(x = Heq.par, y = Peq.par, 
+       pch = 21, col = 'black', bg = 'black')
+```
+
+# PART TWO: Making this into a spatial model
+
+## a. Background
+
+ So far, the models that we have considered in this class are non-spatial: They imagine that all the members of all the populations that we're  considering are located in the same place, and every individual has an equal probability of interacting with every other individual.  
+
+ However, in many cases, we might wish to have a "spatially explicit" model, i.e., one that allows for organisms to move (or propagate) across a landscape.  
+
+ Such models have particular value in the study of invasions: They can help us understand how rapidly a new species will spread across a native landscape. (For a more positive angle, these models are also used to understand ecosystem recovery, succession, etc.)  
+
+ The spread of a species across a landscape can be affected by its interactions with other species. For example (as we will consider today):  
+	- A species that relies on a mutualistic partner may not be able to spread without its partner's presence.  
+	- A species that has a parasite may spread faster (and reach higher population sizes) when that parasite is absent.  
+
+ There are implications for both of these phenomena in applied ecology:  
+	- "Co-invasion" is the process by which two non-native mutualistic partners facilitate one another's spread across a landscape.  
+	- "Biocontrol" is the practice of using other living organisms to control a species of interest, for example by introducing a pathogen that decreases the growth/spread of an invasive species.  
+
+
+## b. Making a spatial model
+
+ The trickiest part about working with spatial models is figuring out how organisms should spread (and interact with one another) across space. In this lab, we'll imagine the simplest case of organisms that are spreading across a linear landscape. That may sound too simple (landscapes are 2-D, and seascapes are 3-D!), but this could be a reasonable approximation for:  
+	- Species spreading along a coastline,  
+	- Species spreading outward from a central area (e.g., seedlings spreading out from the edge of a forest)  
+
+ We'll imagine that our invasion starts from the left of our linear landscape:  
+  
+  H   --->    --->   
+ -----------------------------------------------  
+
+ To track population dynamics, we'll divide up this landscape into a set of X chunks, and keep track of individuals in each chunk.  
+
+ Each species will spread with a dispersal rate 'D.' We'll give each species a specific dispersal rate (`D_H` and `D_P`) so that we can ask what happens when one moves, and not the other, or when they move at different rates.  
+ 
+We'll store those dispersal rates:
+
+```{r}
+D_H <- 0.001
+D_P <- 0.01
+```
+
+ Let's also assume that dispersal can only move you one "step" (either to the left or right) at a time.
+
+ Our model now becomes:
+$$
+\begin{align}
+\frac{dH_i}{dt} &= r H ( 1 - \frac{H}{K+\gamma P}) - a H P + D_H (H_{i-1}+H_{i+1}-2H_i) \\
+\newline
+\frac{dP_i}{dt} &= b H P - m P (1+eP) + D_P (P_{i-1}+P_{i+1}-2P_i) \\
+\end{align}
+$$
+
+ Note that we're using the subscript $i$ to keep track of population in each of the chunks of habitat. $i = 1$ represents the populations on the left edge of the habitat; $i = X$ represents the populations on the right edge of the habitat.
+
+## c. Simulating logistic growth with dispersal
+
+ Let's examine how this set of equations can model the dynamics of a single species that grows logistically over time and spreads from left to right in our habitat. We can recover a logistic growth model with dispersal from the NH04 model by setting $P = 0$ and $a = 0$:
+
+$$
+\begin{align}
+\frac{dH_i}{dt} = r H ( 1 - \frac{H}{K}) + D_H (H_{i-1}+H_{i+1}-2H_i)
+\end{align}
+$$
+
+
+ To simulate, we need to set up a set of spatial coordinates:
+```{r}
+Xset <- seq(from = 1, to = 20)
+```
+
+ Because we have twenty 'patches' in our habitat, we need to set up ten storage variables for H_i = H_1, H_2,... H_20.  
+ 
+ We'll use a matrix to keep things compact. Each row of this matrix represents a timepoint; each column represents a spatial location. This makes a 5000 x 20 matrix. We'll also start our simulation with H at carrying capacity at the left-most edge of the habitat, and H = 0 everywhere else.
+```{r}
+# create a holding matrix
+H.simu3 <- matrix(data = NA, 
+                  nrow = length(tset), ncol = length(Xset))	
+
+# fill initial conditions in the first row
+H.simu3[1, ] <- c(K, rep(0, length(Xset)-1))
+```
+
+Using the `head()` function, we can look at the matrix to double check our set up.
+```{r}
+head(H.simu3)
+```
+
+Now, we're ready to simulate!  
+
+**Note:** we'll use `ifelse()` statements to calculate population sizes. This is because our computations on the left and right edges of the habitat will be slightly different. We'll set this up so that
+```{r}
+for (i in 2:length(tset)) {		# For each timestep
+  
+  # calculate change in time
+  dt <- tset[i] - tset[i - 1]
+  
+  for (j in 1:length(Xset)) {		# For each spatial location
+    
+    H <- H.simu3[i - 1, j]			# Choose the correct previous population size
+    
+    # calculate change in population size
+    if (j == 1) { # If you're in the leftmost patch, you can only move right
+      dH <- (r*H*(1 - H/K) + D_H*(H.simu3[i-1,j+1] - H) ) * dt
+      # rightmost patch
+    } else if (j == length(Xset)) { # If you're in the rightmost patch, you can only move left
+      dH <- (r*H*(1 - H/K) + D_H*(H.simu3[i-1,j-1] - H) ) * dt
+      # the middle
+    } else { # If you're anywhere in the middle, you can move either right or left
+      dH <- (r*H*(1-H/K) + D_H*(H.simu3[i-1,j-1] + H.simu3[i-1,j+1] - 2*H)) * dt
+    }
+    
+    H.simu3[i, j] <- H + dH		# Compute the current population size
+  }
+}
+```
+
+Let's look at the beginning of our matrix to get a preview of what's happening.
+```{r}
+head(H.simu3)
+```
+
+## d. Visualizing using timeseries
+
+Let's visualize our simulation! We can do this in a number of ways. First, we can make a lot of timeseries plots. Try modifying the column selected in this code for a plot. Remember that the columns represent the patches that can be occupied by a host; therefore, you'd plot the host population size for each individual patch through time.
+
+```{r}
+plot(x = tset, y = H.simu3[,10], #all rows, but just column 10
+     type = 'l', lwd = 2, col = Hcol,
+     xlab = 'Time', ylab = 'Host Population Size', 
+     main = 'Patch 10: Host population size through time',
+     ylim = c(0, K), las = 1)  
+```
+
+
+### Think, Pair, Share 4
+
+(1) What is the argument `y = H.simu3[,1]` doing? How is it subsetting the data to visualize a single line?
+
+
+ (2) Add to the following code by adding three more lines to your plot representing the population dynamics in the 5th, 10th, and 15th patches. Be sure to use different colors and add a legend so that you can distinguish them!
+```{r}
+# host population size in patch 1
+plot(x = tset, y = H.simu3[ ,1],
+     type = "l", las = 1, lwd = 2, col = Hcol, 
+     xlab = "Time", ylab = "Population size",
+     main = "Host population size in patches 1, 5, 10, and 15",
+     ylim = c(0, 25))
+
+# host population size in patch 5
+lines(x = tset, y = H.simu3[,5], 
+      col = 'seagreen3', lwd=2)
+
+# host population size in patch 10
+lines(x = tset, y = H.simu3[,10], 
+      col = 'seagreen2', lwd=2)
+
+# host population size in patch 15
+lines(x = tset, y = H.simu3[,15], 
+      col = 'seagreen1', lwd=2)
+
+# add a legend
+legend(x = 75, y = K*0.9,
+       legend = c("Patch 1", "Patch 5", "Patch 10", "Patch 15"),
+       lwd = 2,
+       col = c(Hcol, "seagreen3", "seagreen2", "seagreen1"))
+```
+
+
+	(3) Describe in words what you're observing.
+
+
+
+## e. Visualizing using a heatmap
+
+ A second way that we can visualize our findings is by using a heatmap. We can use the built in function `filled.contour()` to do this. After running the code, what do you think the `z` argument represents?
+```{r}
+filled.contour(x = tset, y = Xset, z = H.simu3, 
+               xlab = 'Time', ylab = 'Location')
+```
+
+If you don't like those colors, you can use what's called a "palette" from a package of color palettes. These are made so that if you don't want to play around with palettes yourself, you can just pick one that someone's already put together. We'll use `RColorBrewer` today.  
+
+Remember how to install a package, if you don't already have it? Install `RColorBrewer` if you don't already have it by running `install.packages("RColorBrewer")` in the console.  
+
+Then, you can load in the package using `library()` or `require()`:
+```{r}
+library(RColorBrewer)		# Load an R colour package
+
+display.brewer.all() # Look at the different colour palettes available
+```
+
+Once you've selected a palette, you can put it into your plot:
+```{r}
+filled.contour(x = tset, y = Xset, z = H.simu3, 
+               nlevels = 4, 
+               xlab = 'Time', ylab = 'Location',
+               col = brewer.pal(4, 'Greens'))	
+```
+
+## f. Visualizing using an invasion front
+
+ A third way is by looking at the "invasion front" -- the size of the population as a function of space -- and how it changes over time. To do this, we'll plot the host population size for each patch on the x-axis, and color our lines by timepoint (remember, there are 5000 of these).
+```{r}
+# plot H at time 0
+plot(x = Xset, y = H.simu3[1,], 
+     type = 'l', lwd = 2, col = Hcol, 
+     xlab = 'Location', ylab = 'Host Population Size', 
+     main = 'Invasion front', 
+     ylim = c(0, K), las = 1)
+# plot H at time 1000
+lines(x = Xset, y = H.simu3[1000,],
+      lwd = 2, col = 'seagreen3')
+# plot H at time 2000
+lines(x = Xset, y = H.simu3[2000,],
+      lwd = 2, col = 'seagreen2')
+# plot H at time 3000
+lines(x = Xset, y = H.simu3[3000,],
+      lwd = 2, col = 'seagreen1')
+# add a legend
+legend(x = 15, y = K*.9, 
+       legend = c('Day 0', 'Day 1000', 'Day 2000', 'Day 3000'), 
+       lwd = 2, 
+       col = c(Hcol, 'seagreen3', 'seagreen2', 'seagreen1'),
+       bg = 'white')
+```
+
+ You can see that the invasion front is moving from left to right over time. Ecologists call this an 'invasion wave,' and are often interested in measuring the shape and speed of such waves.  
+
+ In this lab, we won't worry about making exact measurements of shape and speed, but we will compare and contrast different invasion waves to understand how the biology of species interactions affects the spatial spread of species.  
+
+# PART THREE: Co-Invasion of Mutualists
+
+ We now know what we'd expect if a single, logistically growing species were spreading across our landscape. But what if our logistically growing species were part of a mutualism? And, further, what if our focal species' mutualistic partner depended entirely on that species to grow? In other words, what if we had an NH04 model, with $a = a_{mut}$:  
+
+$$
+\begin{align}
+\frac{dH_i}{dt} &= r H ( 1 - \frac{H}{K+\gamma P} ) - a_{mut} H P + D_H (H_{i-1}+H_{i+1}-2H_i)
+\newline
+\frac{dP_i}{dt} &= b H P - m P (1+eP) + D_P (P_{i-1}+P_{i+1}-2P_i)
+\newline
+\end{align}
+$$
+We'll consider three cases:  
+ - Case 1: H and P move at the same rate (D_H = D_P)  
+ - Case 2: H moves faster than P (D_H > D_P)  
+ - Case 3: P moves faster than H (D_P > D_H)  
+
+## a. Synchronous dispersal
+
+Let's set the dispersal rates for H and P to be equal. This is synchronous dispersal.
+```{r}
+D_H <- 0.001
+D_P <- 0.001
+```
+
+We'll divide up space into twenty patches again:
+```{r}
+Xset <- seq(from = 1, to = 20)
+```
+
+And run our simulation.  
+
+**Note:** We're setting our initial condition in the left-most patch to be the mutualist equilibrium from part 1c.
+```{r}
+# create a holding matrix for H and fill initial conditions
+H.simu4 <- matrix(data=NA, 
+                  nrow = length(tset), ncol = length(Xset))
+H.simu4[1,] <- c(Heq.mut,rep(0,length(Xset)-1))	
+
+# create a holding matrix for P and fill initial conditions
+P.simu4 <- matrix(data=NA, 
+                  nrow = length(tset), ncol = length(Xset))
+P.simu4[1,] <- c(Peq.mut,rep(0,length(Xset)-1))
+
+# for each timestep
+for (i in 2:length(tset)) {
+  
+  # calculate change in time
+	dt <- tset[i] - tset[i-1]
+	
+	for (j in 1:length(Xset)) { # for each patch
+	  
+	  # store placeholder variables
+		P <- P.simu4[i-1, j]
+		H <- H.simu4[i-1, j]
+
+		# calculate change in population size
+		if (j == 1) { # If you're in the leftmost patch
+			dP <- (b*H*P - m*P*(1 + e*P) + D_P*(P.simu4[i-1,j+1] - P) )*dt
+			dH <- (r*H*(1 - H/(K+gamma*P)) - a_mut*H*P + D_H*(H.simu4[i-1,j+1] - H) )*dt
+		} else if (j == length(Xset)) { # If you're in the rightmost patch
+			dP <- (b*H*P - m*P*(1 + e*P) + D_P*(P.simu4[i-1,j-1] - P) ) * dt
+			dH <- (r*H*(1 - H/(K+gamma*P)) - a_mut*H*P + D_H*(H.simu4[i-1,j-1] - H) )*dt
+		} else { # If you're anywhere else
+			dP <- (b*H*P - m*P*(1+e*P) + D_P*(P.simu4[i-1,j-1] + P.simu4[i-1,j+1] - 2*P) )*dt
+			dH <- (r*H*(1-H/(K+gamma*P)) - a_mut*H*P + D_H*(H.simu4[i-1,j-1] + H.simu4[i-1,j+1] - 2*H) )*dt
+		}
+		# calculate total population size and store in holding matrix
+		P.simu4[i, j] <- P + dP
+		H.simu4[i, j] <- H + dH
+	}
+}
+```
+
+As always, check the output of your loop:
+```{r}
+head(P.simu4)
+```
+
+
+And visualize our invasion wave. First, we'll plot H:
+```{r}
+# plot population size in each patch at time 0
+plot(x = Xset, y = H.simu4[1,], 
+     type = 'l', lwd = 2, col = Hcol, 
+     xlab = 'Location', ylab = 'Host Population Size', 
+     main = 'Case 1: Synchronous dispersal',
+     ylim = c(0, Heq.mut), las = 1)
+# add a line for population size in each patch at time 1000
+lines(x = Xset, y = H.simu4[1000,],
+      lwd = 2, col = 'seagreen3')
+# add a line for population size in each patch at time 2000
+lines(x = Xset, y = H.simu4[2000,],
+      lwd = 2, col = 'seagreen2')
+# add a line for population size in each patch at time 3000
+lines(x = Xset, y = H.simu4[3000,],
+      lwd = 2, col = 'seagreen1')
+# add a legend
+legend(x = 15, y = Heq.mut*.9, 
+       legend = c('Day 0', 'Day 1000', 'Day 2000', 'Day 3000'), 
+       lwd = 2, 
+       col = c(Hcol, 'seagreen3', 'seagreen2', 'seagreen1'),
+       bg = 'white')
+```
+
+We can do the same for P:
+```{r}
+# plot population size in each patch at time 0
+plot(x = Xset, y = P.simu4[1,], 
+     type = 'l', lwd = 2, col = 'lightblue4', 
+     xlab = 'Location', ylab = 'Partner Population Size', 
+     main = 'Case 1: Synchronous dispersal',
+     ylim = c(0, Peq.mut), las = 1)
+# add a line for population size in each patch at time 1000
+lines(x = Xset, y = P.simu4[1000,],
+      lwd = 2, col = 'lightblue3')
+# add a line for population size in each patch at time 2000
+lines(x = Xset, y = P.simu4[2000,],
+      lwd = 2, col = 'lightblue2')
+# add a line for population size in each patch at time 3000
+lines(x = Xset, y = P.simu4[3000,],
+      lwd = 2, col = 'lightblue1')
+# add a legend
+legend(x = 15, y = Peq.mut*.9, 
+       legend = c('Day 0', 'Day 1000', 'Day 2000', 'Day 3000'), 
+       lwd = 2, 
+       col = c('lightblue4', 'lightblue3', 'lightblue2', 'lightblue1'),
+       bg = 'white')
+```
+
+If we wanted to get really crazy, we could put everything on the same graph:
+```{r}
+# all host population sizes at t = 1, 1000, 2000, and 3000
+plot(x = Xset, y = H.simu4[1,], 
+     type = 'l', lwd = 2, col = Hcol, 
+     xlab = 'Location',ylab = 'Host or Partner Population Size', 
+     main = 'Case 1: Synchronous dispersal',
+     ylim=c(0,Heq.mut), las=1)
+lines(x = Xset, y = H.simu4[1000,],
+      lwd = 2, col = 'seagreen3')
+lines(x = Xset, y = H.simu4[2000,],
+      lwd = 2, col = 'seagreen2')
+lines(x = Xset, y = H.simu4[3000,],
+      lwd = 2, col = 'seagreen1')
+
+# all partner population sizes at t = 1, 1000, 2000, and 3000
+lines(x = Xset, y = P.simu4[1,],
+      lwd = 2, col = 'lightblue4')
+lines(x = Xset, y = P.simu4[1000,],
+      lwd = 2, col = 'lightblue3')
+lines(x = Xset, y = P.simu4[2000,],
+      lwd = 2, col = 'lightblue2')
+lines(x = Xset, y = P.simu4[3000,],
+       lwd = 2, col = 'lightblue1')
+
+# add a legend
+legend(x = 14, y = Heq.mut*.9, 
+       legend = c('Day 0, H','Day 1000, H','Day 2000, H','Day 3000, H',
+                'Day 0, P','Day 1000, P','Day 2000, P','Day 3000, P'), 
+       lwd = 2, 
+       col = c(Hcol,'seagreen3','seagreen2','seagreen1',
+             'lightblue4','lightblue3','lightblue2','lightblue1'),
+       bg = 'white')
+```
+
+If we compare the results with the un-partnered host (from Part 2, above), we can see that, while the population sizes are larger with the partner, the rate of spread of the host didn't really change (e.g., the host is reaching patch 15 by about day 3000 in both cases):
+```{r}
+# synchronous dispersal where D_H = D_P = 0.001
+plot(x = Xset, y = H.simu4[1,], 
+     type = 'l', lwd = 2, col = Hcol, 
+     xlab = 'Location', ylab = 'Host Population Size', 
+     ylim = c(0, Heq.mut), las = 1,
+     main = expression("Synchronous dispersal: D"[H]*" = D"[P]*" = 0.001"))
+lines(x = Xset, y = H.simu4[1000,], 
+      lwd = 2, col = 'seagreen3')
+lines(x = Xset, y = H.simu4[2000,],
+      lwd = 2, col = 'seagreen2')
+lines(x = Xset, y = H.simu4[3000,],
+      lwd = 2, col = 'seagreen1')
+legend(x = 15, y = Heq.mut*.9, 
+       legend = c('Day 0','Day 1000','Day 2000','Day 3000'), 
+       lwd = 2, 
+       col = c(Hcol, 'seagreen3', 'seagreen2', 'seagreen1'),
+       bg = 'white')
+
+# dispersal of species H without a mutualist species P
+plot(x = Xset, y = H.simu3[1,], 
+     type = 'l', lwd = 2, col = Hcol, 
+     xlab = 'Location', ylab = 'Host Population Size', 
+     ylim = c(0, Heq.mut), las = 1,
+     main = "Dispersal without a mutualist")
+lines(x = Xset, y = H.simu3[1000,], 
+      lwd = 2, col = 'seagreen3')
+lines(x = Xset, y = H.simu3[2000,],
+      lwd = 2, col = 'seagreen2')
+lines(x = Xset, y = H.simu3[3000,],
+      lwd = 2, col = 'seagreen1')
+legend(x = 15, y = Heq.mut*0.99, 
+       legend = c('Day 0','Day 1000','Day 2000','Day 3000'), 
+       lwd = 2, 
+       col = c(Hcol, 'seagreen3', 'seagreen2', 'seagreen1'),
+       bg = 'white')
+```
+
+We can also see this by plotting the invasion front at the same timepoint on the same set of axes. CAREFUL! This only works if you've used the same `tset` for both your simulations!
+```{r}
+# synchronous dispersal with mutualist
+plot(x = Xset, y = H.simu4[1000,], 
+     type = 'l', lwd = 2, col = Hcol, 
+     xlab = 'Location', ylab = 'Host Population Size',
+     main = 'Host population size across space at t = 1000',
+     ylim = c(0, Heq.mut), las = 1)
+# no mutualist simulation
+lines(x = Xset, y = H.simu3[1000,],
+      lwd = 2, col = 'seagreen3')
+legend(x = 12, y = Heq.mut*.99, 
+       legend = c('w/ mutualist', 'w/o mutualist'),
+       lwd = 2, 
+       col = c(Hcol, 'seagreen3'),
+       bg = 'white')
+```
+
+## b. Host-first dispersal
+
+Let's set the dispersal rates at:
+
+```{r}
+D_H <- 0.01
+D_P <- 0.001
+```
+
+
+### Think, Pair, Share 5
+(1) Create new simulation storage vectors (`H.simu5` and `P.simu5`), and run a simulation using these dispersal rates. **HINT:** Copy/paste from Part 3A, above.
+
+```{r}
+# create a holding matrix for H and fill initial conditions
+H.simu5 <- matrix(data=NA, 
+                  nrow = length(tset), ncol = length(Xset))
+H.simu5[1,] <- c(Heq.mut,rep(0,length(Xset)-1))	
+
+# create a holding matrix for P and fill initial conditions
+P.simu5 <- matrix(data=NA, 
+                  nrow = length(tset), ncol = length(Xset))
+P.simu5[1,] <- c(Peq.mut,rep(0,length(Xset)-1))
+
+# for each timestep
+for (i in 2:length(tset)) {
+  
+  # calculate change in time
+	dt <- tset[i] - tset[i-1]
+	
+	for (j in 1:length(Xset)) { # for each patch
+	  
+	  # store placeholder variables
+		P <- P.simu5[i-1, j]
+		H <- H.simu5[i-1, j]
+
+		# calculate change in population size
+		if (j == 1) { # If you're in the leftmost patch
+			dP <- (b*H*P - m*P*(1 + e*P) + D_P*(P.simu5[i-1,j+1] - P) )*dt
+			dH <- (r*H*(1 - H/(K+gamma*P)) - a_mut*H*P + D_H*(H.simu5[i-1,j+1] - H) )*dt
+		} else if (j == length(Xset)) { # If you're in the rightmost patch
+			dP <- (b*H*P - m*P*(1 + e*P) + D_P*(P.simu5[i-1,j-1] - P) ) * dt
+			dH <- (r*H*(1 - H/(K+gamma*P)) - a_mut*H*P + D_H*(H.simu5[i-1,j-1] - H) )*dt
+		} else { # If you're anywhere else
+			dP <- (b*H*P - m*P*(1+e*P) + D_P*(P.simu5[i-1,j-1] + P.simu5[i-1,j+1] - 2*P) )*dt
+			dH <- (r*H*(1-H/(K+gamma*P)) - a_mut*H*P + D_H*(H.simu5[i-1,j-1] + H.simu5[i-1,j+1] - 2*H) )*dt
+		}
+		# calculate total population size and store in holding matrix
+		P.simu5[i, j] <- P + dP
+		H.simu5[i, j] <- H + dH
+	}
+}
+
+head(P.simu5)
+
+```
+
+(2) Visualize the invasion fronts of the host and the partner at t = 1, t = 1000, t = 2000, and t = 3000 (as we have previously).
+
+```{r}
+# all host population sizes at t = 1, 1000, 2000, and 3000
+plot(x = Xset, y = H.simu5[1,], 
+     type = 'l', lwd = 2, col = Hcol, 
+     xlab = 'Location',ylab = 'Host or Partner Population Size', 
+     main = 'Case 2: Host first',
+     ylim=c(0,Heq.mut), las=1)
+lines(x = Xset, y = H.simu5[1000,],
+      lwd = 2, col = 'seagreen3')
+lines(x = Xset, y = H.simu5[2000,],
+      lwd = 2, col = 'seagreen2')
+lines(x = Xset, y = H.simu5[3000,],
+      lwd = 2, col = 'seagreen1')
+
+
+# all partner population sizes at t = 1, 1000, 2000, and 3000
+lines(x = Xset, y = P.simu5[1,],
+      lwd = 2, col = 'lightblue4')
+lines(x = Xset, y = P.simu5[1000,],
+      lwd = 2, col = 'lightblue3')
+lines(x = Xset, y = P.simu5[2000,],
+      lwd = 2, col = 'lightblue2')
+lines(x = Xset, y = P.simu5[3000,],
+       lwd = 2, col = 'lightblue1')
+
+# add a legend
+legend(x = 14, y = Heq.mut*.9, 
+       legend = c('Day 0, H','Day 1000, H','Day 2000, H','Day 3000, H',
+                'Day 0, P','Day 1000, P','Day 2000, P','Day 3000, P'), 
+       lwd = 2, 
+       col = c(Hcol,'seagreen3','seagreen2','seagreen1',
+             'lightblue4','lightblue3','lightblue2','lightblue1'),
+       bg = 'white')
+```
+
+(3) Modify the code from the end of part 3a to compare the location of the Host's invasion front on Day 1000 for (a) the no-mutualist simulation, (b) the same-speed mutualist simulation, and (c) this host-faster simulation.
+```{r}
+# synchronous dispersal with mutualist
+plot(x = Xset, y = H.simu4[1000,], 
+     type = 'l', lwd = 2, col = Hcol, 
+     xlab = 'Location', ylab = 'Host Population Size',
+     main = 'Host population size across space at t = 1000',
+     ylim = c(0, Heq.mut), las = 1)
+# no mutualist simulation
+lines(x = Xset, y = H.simu3[1000,],
+      lwd = 2, col = 'seagreen3')
+lines(x = Xset, y = H.simu5[1000,],
+      lwd = 2, col = 'orange')
+legend(x = 12, y = Heq.mut*.99, 
+       legend = c('w/ mutualist (same-speed)', 'w/o mutualist', 'host first'),
+       lwd = 2, 
+       col = c(Hcol, 'seagreen3', 'orange'),
+       bg = 'white')
+```
+
+
+(4) Compare the location of the Partner's invasion front on Day 1000 for (a) the same-speed mutualist simulation, and (b) this host-faster simulation.
+
+```{r}
+# synchronous dispersal with mutualist
+plot(x = Xset, y = P.simu4[1000,], 
+     type = 'l', lwd = 2, col = Pcol, 
+     xlab = 'Location', ylab = 'Host Population Size',
+     main = 'Host population size across space at t = 1000',
+     ylim = c(0, Peq.mut), las = 1)
+lines(x = Xset, y = P.simu5[1000,],
+      lwd = 2, col = 'darkblue')
+legend(x = 12, y = Peq.mut*.99, 
+       legend = c('w/ mutualist (same-speed)', 'host first'),
+       lwd = 2, 
+       col = c(Pcol, 'darkblue'),
+       bg = 'white')
+```
+
+
+
+
+(5) Describe your observations using biological/ecological terms.
+
+
+
+
+
+## c. Partner-first dispersal
+
+Let's set the dispersal rates at:
+```{r}
+D_H <- 0.001
+D_P <- 0.1
+```
+
+### Think, Pair, Share 6
+(1) Run a simulation for these dispersal values. Remember to store your results using new variables!
+
+```{r}
+# create a holding matrix for H and fill initial conditions
+H.simu6 <- matrix(data=NA, 
+                  nrow = length(tset), ncol = length(Xset))
+H.simu6[1,] <- c(Heq.mut,rep(0,length(Xset)-1))	
+
+# create a holding matrix for P and fill initial conditions
+P.simu6 <- matrix(data=NA, 
+                  nrow = length(tset), ncol = length(Xset))
+P.simu6[1,] <- c(Peq.mut,rep(0,length(Xset)-1))
+
+# for each timestep
+for (i in 2:length(tset)) {
+  
+  # calculate change in time
+	dt <- tset[i] - tset[i-1]
+	
+	for (j in 1:length(Xset)) { # for each patch
+	  
+	  # store placeholder variables
+		P <- P.simu6[i-1, j]
+		H <- H.simu6[i-1, j]
+
+		# calculate change in population size
+		if (j == 1) { # If you're in the leftmost patch
+			dP <- (b*H*P - m*P*(1 + e*P) + D_P*(P.simu5[i-1,j+1] - P) )*dt
+			dH <- (r*H*(1 - H/(K+gamma*P)) - a_mut*H*P + D_H*(H.simu6[i-1,j+1] - H) )*dt
+		} else if (j == length(Xset)) { # If you're in the rightmost patch
+			dP <- (b*H*P - m*P*(1 + e*P) + D_P*(P.simu6[i-1,j-1] - P) ) * dt
+			dH <- (r*H*(1 - H/(K+gamma*P)) - a_mut*H*P + D_H*(H.simu6[i-1,j-1] - H) )*dt
+		} else { # If you're anywhere else
+			dP <- (b*H*P - m*P*(1+e*P) + D_P*(P.simu5[i-1,j-1] + P.simu6[i-1,j+1] - 2*P) )*dt
+			dH <- (r*H*(1-H/(K+gamma*P)) - a_mut*H*P + D_H*(H.simu6[i-1,j-1] + H.simu6[i-1,j+1] - 2*H) )*dt
+		}
+		# calculate total population size and store in holding matrix
+		P.simu6[i, j] <- P + dP
+		H.simu6[i, j] <- H + dH
+	}
+}
+
+head(P.simu6)
+```
+
+
+(2) Visualize the invasion fronts of host and partner at t = 0, t = 1000, t = 2000, and t = 3000
+
+```{r}
+# all host population sizes at t = 1, 1000, 2000, and 3000
+plot(x = Xset, y = H.simu6[1,], 
+     type = 'l', lwd = 2, col = Hcol, 
+     xlab = 'Location',ylab = 'Host or Partner Population Size', 
+     main = 'Case 3: Partner first',
+     ylim=c(0,Heq.mut), las=1)
+lines(x = Xset, y = H.simu6[1000,],
+      lwd = 2, col = 'seagreen3')
+lines(x = Xset, y = H.simu6[2000,],
+      lwd = 2, col = 'seagreen2')
+lines(x = Xset, y = H.simu6[3000,],
+      lwd = 2, col = 'seagreen1')
+
+
+# all partner population sizes at t = 1, 1000, 2000, and 3000
+lines(x = Xset, y = P.simu6[1,],
+      lwd = 2, col = 'lightblue4')
+lines(x = Xset, y = P.simu6[1000,],
+      lwd = 2, col = 'lightblue3')
+lines(x = Xset, y = P.simu6[2000,],
+      lwd = 2, col = 'lightblue2')
+lines(x = Xset, y = P.simu6[3000,],
+       lwd = 2, col = 'lightblue1')
+
+# add a legend
+legend(x = 14, y = Heq.mut*.9, 
+       legend = c('Day 0, H','Day 1000, H','Day 2000, H','Day 3000, H',
+                'Day 0, P','Day 1000, P','Day 2000, P','Day 3000, P'), 
+       lwd = 2, 
+       col = c(Hcol,'seagreen3','seagreen2','seagreen1',
+             'lightblue4','lightblue3','lightblue2','lightblue1'),
+       bg = 'white')
+```
+
+
+(3) Compare the host's invasion front on Day 1000 for (a) D_H = D_P, (b) D_H > D_P, and (c) D_H < D_P (this simulation).
+
+```{r}
+# synchronous dispersal with mutualist
+plot(x = Xset, y = H.simu4[1000,], 
+     type = 'l', lwd = 2, col = Hcol, 
+     xlab = 'Location', ylab = 'Host Population Size',
+     main = 'Host population size across space at t = 1000',
+     ylim = c(0, Heq.mut), las = 1)
+lines(x = Xset, y = H.simu5[1000,],
+      lwd = 2, col = 'orange')
+lines(x = Xset, y = H.simu6[1000,], #p first/ host slower
+      lwd = 2, col = 'pink')
+legend(x = 12, y = Heq.mut*.99, 
+       legend = c('w/ mutualist (same-speed)',  'host first', 'host slower'),
+       lwd = 2, 
+       col = c(Hcol, 'orange', 'pink'),
+       bg = 'white')
+```
+
+(4) Compare the partner's invasion front on Day 1000 for (a) D_H = D_P, (b) D_H > D_P, and (c) D_H < D_P (this simulation).
+
+```{r}
+
+```
+
+(5) Describe your findings in words.
+
+
+
+
+
+
+# Homework
+
+To make sure you're set up, run the code from lab again from top to bottom. Include all the set up code in this chunk, to make sure you can generate a knitted document:
+```{r}
+
+```
+
+# HW 1
+
+Question 1: Mutualist-enhanced invasion
+For this part of the homework, the partner is a mutualist (a = a_mut = 0)  
+
+a. Make two plots that compare the host (plot 1) and partner's (plot 2) invasion fronts on Day 1000 for (a) D_H = D_P, (b) D_H > D_P, and (c) D_H < D_P. Be sure to include a legend!  
+
+/2 axes for host and partner graphs  
+/6 three scenarios for host and partner  
+/2 legends for host and partner  
+= /10 points total  
+
+```{r}
+
+```
+
+b. Under what scenario does invasion happen fastest?   
+
+**Answer in text here, just state which one**
+
+= /2 points total  
+
+c. Why does (or does not) a faster partner dispersal rate accelerate invasion?  
+
+**Answer in text here, please be concise!**
+
+= /2 points total
+
+# HW 2
+
+Question 2: Parasite-limited invasion 
+
+For this part of the homework, the partner is a parasite (a = a_par = 0.05).   
+
+Run three simulations (remember to change the number for your `.simu` matrices!):  
+
+a. Same-speed: D_H = D_P = 0.001  
+
+```{r}
+## Question 2A work here
+```
+
+b. Faster host: D_H = 0.01; D_P = 0.001 
+
+```{r}
+## Question 2B work here
+```
+
+c. Faster parasite: D_H = 0.001; D_P = 0.01  
+
+```{r}
+## Question 2C work here
+```
+
+d. Make two plots that compare the host (plot 1) and partner's (plot 2) invasion fronts on Day 1000 for (a) D_H = D_P, (b) D_H > D_P, and (c) D_H < D_P. Be sure to include a legend!  
+
+```{r}
+## Question 2D work here
+```
+
+/2 axes for host and partner graphs  
+/6 three scenarios for host and partner  
+/2 legends for host and partner  
+= /10 points total  
+
+# HW 3
+
+Question 3: Invasion scenario reflection
+
+Under what scenario does invasion happen fastest?  
+
+**Answer in text here, please be concise!**
+
+= /2 points total  
+
+# HW 4
+
+Question 4: Model applications
+Imagine you are a State Parks natural resource manager tasked with slowing (or, ideally, stopping!) the invasion of species H into a native California habitat. You are working with scientists who have genetically engineered a range of potential biocontrol agents. They offer you three options:  
+		Agent A: a = 0.05, D_P = 1  
+		Agent B: a = 0.5, D_P = 1  
+		Agent C: a = 0.05, D_P = 10  
+	Which one do you choose, and why? Plot some invasion fronts to support your choice.  
+
+/5 at least one invasion front plot with all three scenarios  
+/2 answer and rationale for control agent selection   
+= /7 points total  
+
+
+```{r}
+# agent A
+```
+
+```{r}
+# agent B
+```
+
+```{r}
+# agent C
+```
+
+```{r}
+# invasion front plot
+```
+
+
+**Write answer and rationale for control agent selection, please be concise**
+
+
+= /34 points total
+
+
+
