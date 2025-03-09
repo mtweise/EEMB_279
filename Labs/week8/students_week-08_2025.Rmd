@@ -76,7 +76,7 @@ Note that even though $P$ is on the y-axis, it's easier to solve the ZNGIs - par
 # create a vector of values for P
 Pset <- seq(from = 0, to = 100)
 
-# solver for dh/dt and dp/dt zngis
+# solve for dh/dt and dp/dt zngis
 dHdt.ZNGI <- 1/r*(K+gamma*Pset)*(r-a*Pset)
 dPdt.ZNGI <- m/b*(1+e*Pset)
 ```
@@ -1334,18 +1334,188 @@ a. Make two plots that compare the host (plot 1) and partner's (plot 2) invasion
 = /10 points total  
 
 ```{r}
+## a) D_H = D_P
+D_H1 <- 0.001
+D_P1 <- 0.001
+
+# create a holding matrix for H and fill initial conditions
+H.simu4 <- matrix(data=NA, 
+                  nrow = length(tset), ncol = length(Xset))
+H.simu4[1,] <- c(Heq.mut,rep(0,length(Xset)-1))	
+
+# create a holding matrix for P and fill initial conditions
+P.simu4 <- matrix(data=NA, 
+                  nrow = length(tset), ncol = length(Xset))
+P.simu4[1,] <- c(Peq.mut,rep(0,length(Xset)-1))
+
+# for each timestep
+for (i in 2:length(tset)) {
+  
+  # calculate change in time
+	dt <- tset[i] - tset[i-1]
+	
+	for (j in 1:length(Xset)) { # for each patch
+	  
+	  # store placeholder variables
+		P <- P.simu4[i-1, j]
+		H <- H.simu4[i-1, j]
+
+		# calculate change in population size
+		if (j == 1) { # If you're in the leftmost patch
+			dP <- (b*H*P - m*P*(1 + e*P) + D_P1*(P.simu4[i-1,j+1] - P) )*dt
+			dH <- (r*H*(1 - H/(K+gamma*P)) - a_mut*H*P + D_H1*(H.simu4[i-1,j+1] - H) )*dt
+		} else if (j == length(Xset)) { # If you're in the rightmost patch
+			dP <- (b*H*P - m*P*(1 + e*P) + D_P1*(P.simu4[i-1,j-1] - P) ) * dt
+			dH <- (r*H*(1 - H/(K+gamma*P)) - a_mut*H*P + D_H1*(H.simu4[i-1,j-1] - H) )*dt
+		} else { # If you're anywhere else
+			dP <- (b*H*P - m*P*(1+e*P) + D_P1*(P.simu4[i-1,j-1] + P.simu4[i-1,j+1] - 2*P) )*dt
+			dH <- (r*H*(1-H/(K+gamma*P)) - a_mut*H*P + D_H1*(H.simu4[i-1,j-1] + H.simu4[i-1,j+1] - 2*H) )*dt
+		}
+		# calculate total population size and store in holding matrix
+		P.simu4[i, j] <- P + dP
+		H.simu4[i, j] <- H + dH
+	}
+}
+
+
+#b)
+D_H2 <- 0.01
+D_P2 <- 0.001
+
+# create a holding matrix for H and fill initial conditions
+H.simu5 <- matrix(data=NA, 
+                  nrow = length(tset), ncol = length(Xset))
+H.simu5[1,] <- c(Heq.mut,rep(0,length(Xset)-1))	
+
+# create a holding matrix for P and fill initial conditions
+P.simu5 <- matrix(data=NA, 
+                  nrow = length(tset), ncol = length(Xset))
+P.simu5[1,] <- c(Peq.mut,rep(0,length(Xset)-1))
+
+# for each timestep
+for (i in 2:length(tset)) {
+  
+  # calculate change in time
+	dt <- tset[i] - tset[i-1]
+	
+	for (j in 1:length(Xset)) { # for each patch
+	  
+	  # store placeholder variables
+		P <- P.simu5[i-1, j]
+		H <- H.simu5[i-1, j]
+
+		# calculate change in population size
+		if (j == 1) { # If you're in the leftmost patch
+			dP <- (b*H*P - m*P*(1 + e*P) + D_P2*(P.simu5[i-1,j+1] - P) )*dt
+			dH <- (r*H*(1 - H/(K+gamma*P)) - a_mut*H*P + D_H2*(H.simu5[i-1,j+1] - H) )*dt
+		} else if (j == length(Xset)) { # If you're in the rightmost patch
+			dP <- (b*H*P - m*P*(1 + e*P) + D_P2*(P.simu5[i-1,j-1] - P) ) * dt
+			dH <- (r*H*(1 - H/(K+gamma*P)) - a_mut*H*P + D_H2*(H.simu5[i-1,j-1] - H) )*dt
+		} else { # If you're anywhere else
+			dP <- (b*H*P - m*P*(1+e*P) + D_P2*(P.simu5[i-1,j-1] + P.simu5[i-1,j+1] - 2*P) )*dt
+			dH <- (r*H*(1-H/(K+gamma*P)) - a_mut*H*P + D_H2*(H.simu5[i-1,j-1] + H.simu5[i-1,j+1] - 2*H) )*dt
+		}
+		# calculate total population size and store in holding matrix
+		P.simu5[i, j] <- P + dP
+		H.simu5[i, j] <- H + dH
+	}
+}
+
+#c)
+D_H3 <- 0.001
+D_P3 <- 0.1
+
+# create a holding matrix for H and fill initial conditions
+H.simu6 <- matrix(data=NA, 
+                  nrow = length(tset), ncol = length(Xset))
+H.simu6[1,] <- c(Heq.mut,rep(0,length(Xset)-1))	
+
+# create a holding matrix for P and fill initial conditions
+P.simu6 <- matrix(data=NA, 
+                  nrow = length(tset), ncol = length(Xset))
+P.simu6[1,] <- c(Peq.mut,rep(0,length(Xset)-1))
+
+# for each timestep
+for (i in 2:length(tset)) {
+  
+  # calculate change in time
+	dt <- tset[i] - tset[i-1]
+	
+	for (j in 1:length(Xset)) { # for each patch
+	  
+	  # store placeholder variables
+		P <- P.simu6[i-1, j]
+		H <- H.simu6[i-1, j]
+
+		# calculate change in population size
+		if (j == 1) { # If you're in the leftmost patch
+			dP <- (b*H*P - m*P*(1 + e*P) + D_P3*(P.simu5[i-1,j+1] - P) )*dt
+			dH <- (r*H*(1 - H/(K+gamma*P)) - a_mut*H*P + D_H3*(H.simu6[i-1,j+1] - H) )*dt
+		} else if (j == length(Xset)) { # If you're in the rightmost patch
+			dP <- (b*H*P - m*P*(1 + e*P) + D_P3*(P.simu6[i-1,j-1] - P) ) * dt
+			dH <- (r*H*(1 - H/(K+gamma*P)) - a_mut*H*P + D_H3*(H.simu6[i-1,j-1] - H) )*dt
+		} else { # If you're anywhere else
+			dP <- (b*H*P - m*P*(1+e*P) + D_P3*(P.simu5[i-1,j-1] + P.simu6[i-1,j+1] - 2*P) )*dt
+			dH <- (r*H*(1-H/(K+gamma*P)) - a_mut*H*P + D_H3*(H.simu6[i-1,j-1] + H.simu6[i-1,j+1] - 2*H) )*dt
+		}
+		# calculate total population size and store in holding matrix
+		P.simu6[i, j] <- P + dP
+		H.simu6[i, j] <- H + dH
+	}
+}
+
+
+#Host plot
+# add a line for population size in each patch at time 1000 synchronous
+plot(x = Xset, y = H.simu4[1000,],
+     type = 'l', lwd = 2, col = 'seagreen',
+     xlab = 'Location', ylab = 'Host Population Size', 
+     main = 'Host Dispersal at time 1000- Mutualist',
+     ylim = c(0, Heq.mut), las = 1)
+# add a line for population size in each patch at time 1000 host first
+lines(x = Xset, y = H.simu5[1000,],
+      lwd = 2, col = 'green')
+# add a line for population size in each patch at time 1000 partner first
+lines(x = Xset, y = H.simu6[1000,],
+      lwd = 2, col = 'lightgreen')
+# add a legend
+legend(x = 15, y = Heq.mut*.9, 
+       legend = c( 'synchronous', 'host first', 'partner first'), 
+       lwd = 2, 
+       col = c( 'seagreen', 'green', 'lightgreen'),
+       bg = 'white')
+
+#Partner plot
+#add a line for population size in each patch at time 1000 synchronous
+plot(x = Xset, y = P.simu4[1000,], 
+     type = 'l', lwd = 2, col = 'blue', 
+     xlab = 'Location', ylab = 'Partner Population Size', 
+     main = 'Partner dispersal at time 1000- Mutualist',
+     ylim = c(0, Peq.mut), las = 1)
+# add a line for population size in each patch at time 1000 host-first
+lines(x = Xset, y = P.simu5[1000,],
+      lwd = 2, col = 'lightblue3')
+# add a line for population size in each patch at time 1000 partner-first
+lines(x = Xset, y = P.simu6[1000,],
+      lwd = 2, col = 'lightblue1')
+# add a legend
+legend(x = 15, y = Peq.mut*.9, 
+       legend = c('synchronous', 'host first', 'partner first'), 
+       lwd = 2, 
+       col = c( 'blue', 'lightblue3', 'lightblue1'),
+       bg = 'white')
 
 ```
 
 b. Under what scenario does invasion happen fastest?   
 
-**Answer in text here, just state which one**
+**Synchronous has the fastest invasion time if you look at both host and partner. **
 
 = /2 points total  
 
 c. Why does (or does not) a faster partner dispersal rate accelerate invasion?  
 
-**Answer in text here, please be concise!**
+**A faster partner dispersal rate accelerates invasion in comparison to host first because as mutualists, the host does better with the partner. If the partner has a faster dispersal rate it can assist the host and invade new locations quicker.**
 
 = /2 points total
 
@@ -1360,25 +1530,193 @@ Run three simulations (remember to change the number for your `.simu` matrices!)
 a. Same-speed: D_H = D_P = 0.001  
 
 ```{r}
-## Question 2A work here
+
+a=a_par= 0.05
+## a) D_H = D_P
+
+D_H1 <- 0.001
+D_P1 <- 0.001
+
+# create a holding matrix for H and fill initial conditions
+H.simu7 <- matrix(data=NA, 
+                  nrow = length(tset), ncol = length(Xset))
+H.simu7[1,] <- c(Heq.mut,rep(0,length(Xset)-1))	
+
+# create a holding matrix for P and fill initial conditions
+P.simu7 <- matrix(data=NA, 
+                  nrow = length(tset), ncol = length(Xset))
+P.simu7[1,] <- c(Peq.mut,rep(0,length(Xset)-1))
+
+# for each timestep
+for (i in 2:length(tset)) {
+  
+  # calculate change in time
+	dt <- tset[i] - tset[i-1]
+	
+	for (j in 1:length(Xset)) { # for each patch
+	  
+	  # store placeholder variables
+		P <- P.simu7[i-1, j]
+		H <- H.simu7[i-1, j]
+
+		# calculate change in population size
+		if (j == 1) { # If you're in the leftmost patch
+			dP <- (b*H*P - m*P*(1 + e*P) + D_P1*(P.simu7[i-1,j+1] - P) )*dt
+			dH <- (r*H*(1 - H/(K+gamma*P)) - a_par*H*P + D_H1*(H.simu7[i-1,j+1] - H) )*dt
+		} else if (j == length(Xset)) { # If you're in the rightmost patch
+			dP <- (b*H*P - m*P*(1 + e*P) + D_P1*(P.simu7[i-1,j-1] - P) ) * dt
+			dH <- (r*H*(1 - H/(K+gamma*P)) - a_par*H*P + D_H1*(H.simu7[i-1,j-1] - H) )*dt
+		} else { # If you're anywhere else
+			dP <- (b*H*P - m*P*(1+e*P) + D_P1*(P.simu7[i-1,j-1] + P.simu7[i-1,j+1] - 2*P) )*dt
+			dH <- (r*H*(1-H/(K+gamma*P)) - a_par*H*P + D_H1*(H.simu7[i-1,j-1] + H.simu4[i-1,j+1] - 2*H) )*dt
+		}
+		# calculate total population size and store in holding matrix
+		P.simu7[i, j] <- P + dP
+		H.simu7[i, j] <- H + dH
+	}
+}
+
 ```
 
 b. Faster host: D_H = 0.01; D_P = 0.001 
 
 ```{r}
-## Question 2B work here
+#b)
+D_H2 <- 0.01
+D_P2 <- 0.001
+
+# create a holding matrix for H and fill initial conditions
+H.simu8 <- matrix(data=NA, 
+                  nrow = length(tset), ncol = length(Xset))
+H.simu8[1,] <- c(Heq.mut,rep(0,length(Xset)-1))	
+
+# create a holding matrix for P and fill initial conditions
+P.simu8 <- matrix(data=NA, 
+                  nrow = length(tset), ncol = length(Xset))
+P.simu8[1,] <- c(Peq.mut,rep(0,length(Xset)-1))
+
+# for each timestep
+for (i in 2:length(tset)) {
+  
+  # calculate change in time
+	dt <- tset[i] - tset[i-1]
+	
+	for (j in 1:length(Xset)) { # for each patch
+	  
+	  # store placeholder variables
+		P <- P.simu8[i-1, j]
+		H <- H.simu8[i-1, j]
+
+		# calculate change in population size
+		if (j == 1) { # If you're in the leftmost patch
+			dP <- (b*H*P - m*P*(1 + e*P) + D_P2*(P.simu8[i-1,j+1] - P) )*dt
+			dH <- (r*H*(1 - H/(K+gamma*P)) - a_par*H*P + D_H2*(H.simu8[i-1,j+1] - H) )*dt
+		} else if (j == length(Xset)) { # If you're in the rightmost patch
+			dP <- (b*H*P - m*P*(1 + e*P) + D_P2*(P.simu8[i-1,j-1] - P) ) * dt
+			dH <- (r*H*(1 - H/(K+gamma*P)) - a_par*H*P + D_H2*(H.simu8[i-1,j-1] - H) )*dt
+		} else { # If you're anywhere else
+			dP <- (b*H*P - m*P*(1+e*P) + D_P2*(P.simu8[i-1,j-1] + P.simu8[i-1,j+1] - 2*P) )*dt
+			dH <- (r*H*(1-H/(K+gamma*P)) - a_par*H*P + D_H2*(H.simu8[i-1,j-1] + H.simu8[i-1,j+1] - 2*H) )*dt
+		}
+		# calculate total population size and store in holding matrix
+		P.simu8[i, j] <- P + dP
+		H.simu8[i, j] <- H + dH
+	}
+}
+
 ```
 
 c. Faster parasite: D_H = 0.001; D_P = 0.01  
 
 ```{r}
-## Question 2C work here
+#c)
+D_H3 <- 0.001
+D_P3 <- 0.1
+
+# create a holding matrix for H and fill initial conditions
+H.simu9 <- matrix(data=NA, 
+                  nrow = length(tset), ncol = length(Xset))
+H.simu9[1,] <- c(Heq.mut,rep(0,length(Xset)-1))	
+
+# create a holding matrix for P and fill initial conditions
+P.simu9 <- matrix(data=NA, 
+                  nrow = length(tset), ncol = length(Xset))
+P.simu9[1,] <- c(Peq.mut,rep(0,length(Xset)-1))
+
+# for each timestep
+for (i in 2:length(tset)) {
+  
+  # calculate change in time
+	dt <- tset[i] - tset[i-1]
+	
+	for (j in 1:length(Xset)) { # for each patch
+	  
+	  # store placeholder variables
+		P <- P.simu9[i-1, j]
+		H <- H.simu9[i-1, j]
+
+		# calculate change in population size
+		if (j == 1) { # If you're in the leftmost patch
+			dP <- (b*H*P - m*P*(1 + e*P) + D_P3*(P.simu9[i-1,j+1] - P) )*dt
+			dH <- (r*H*(1 - H/(K+gamma*P)) - a_par*H*P + D_H3*(H.simu9[i-1,j+1] - H) )*dt
+		} else if (j == length(Xset)) { # If you're in the rightmost patch
+			dP <- (b*H*P - m*P*(1 + e*P) + D_P3*(P.simu9[i-1,j-1] - P) ) * dt
+			dH <- (r*H*(1 - H/(K+gamma*P)) - a_par*H*P + D_H3*(H.simu9[i-1,j-1] - H) )*dt
+		} else { # If you're anywhere else
+			dP <- (b*H*P - m*P*(1+e*P) + D_P3*(P.simu9[i-1,j-1] + P.simu9[i-1,j+1] - 2*P) )*dt
+			dH <- (r*H*(1-H/(K+gamma*P)) - a_par*H*P + D_H3*(H.simu9[i-1,j-1] + H.simu9[i-1,j+1] - 2*H) )*dt
+		}
+		# calculate total population size and store in holding matrix
+		P.simu9[i, j] <- P + dP
+		H.simu9[i, j] <- H + dH
+	}
+}
+
 ```
 
 d. Make two plots that compare the host (plot 1) and partner's (plot 2) invasion fronts on Day 1000 for (a) D_H = D_P, (b) D_H > D_P, and (c) D_H < D_P. Be sure to include a legend!  
 
 ```{r}
-## Question 2D work here
+#Host plot
+# add a line for population size in each patch at time 1000 synchronous
+plot(x = Xset, y = H.simu7[1000,],
+     type = 'l', lwd = 2, col = 'seagreen',
+     xlab = 'Location', ylab = 'Host Population Size', 
+     main = 'Host Dispersal at time 1000- Parasitism',
+     ylim = c(0, Heq.mut), las = 1)
+# add a line for population size in each patch at time 1000 host first
+lines(x = Xset, y = H.simu8[1000,],
+      lwd = 2, col = 'green')
+# add a line for population size in each patch at time 1000 partner first
+lines(x = Xset, y = H.simu9[1000,],
+      lwd = 2, col = 'lightgreen')
+# add a legend
+legend(x = 15, y = Heq.mut*.9, 
+       legend = c( 'synchronous', 'host first', 'partner first'), 
+       lwd = 2, 
+       col = c( 'seagreen', 'green', 'lightgreen'),
+       bg = 'white')
+
+#Partner plot
+#add a line for population size in each patch at time 1000 synchronous
+plot(x = Xset, y = P.simu7[1000,], 
+     type = 'l', lwd = 2, col = 'blue', 
+     xlab = 'Location', ylab = 'Partner Population Size', 
+     main = 'Partner dispersal at time 1000- Parasitism',
+     ylim = c(0, Peq.mut), las = 1)
+# add a line for population size in each patch at time 1000 host-first
+lines(x = Xset, y = P.simu8[1000,],
+      lwd = 2, col = 'lightblue3')
+# add a line for population size in each patch at time 1000 partner-first
+lines(x = Xset, y = P.simu9[1000,],
+      lwd = 2, col = 'lightblue1')
+# add a legend
+legend(x = 15, y = Peq.mut*.9, 
+       legend = c('synchronous', 'host first', 'partner first'), 
+       lwd = 2, 
+       col = c( 'blue', 'lightblue3', 'lightblue1'),
+       bg = 'white')
+
 ```
 
 /2 axes for host and partner graphs  
