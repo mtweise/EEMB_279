@@ -1730,7 +1730,7 @@ Question 3: Invasion scenario reflection
 
 Under what scenario does invasion happen fastest?  
 
-**Answer in text here, please be concise!**
+**Under the synchronous and partner first scenarios.**
 
 = /2 points total  
 
@@ -1750,22 +1750,260 @@ Imagine you are a State Parks natural resource manager tasked with slowing (or, 
 
 ```{r}
 # agent A
+a = 0.05
+D_P = 1
+
+r <- 1			# growth rate of host
+K <- 20			# carrying capacity of host
+gamma <- .5	# positive effect of P on H's carrying capacity
+b <- 1			# growth rate of P (encompasses conversion and attack rate)
+m <- 1			# density independent mortality of P
+e <- 1			# factor weighting density dependent mortality of P
+
+
+# create a holding matrix
+H.simu10 <- matrix(data = NA, 
+                  nrow = length(tset), ncol = length(Xset))	
+
+# fill initial conditions in the first row
+H.simu10[1, ] <- c(K, rep(0, length(Xset)-1))
+
+# create a holding matrix for P and fill initial conditions
+P.simu10 <- matrix(data=NA, 
+                  nrow = length(tset), ncol = length(Xset))
+P.simu10[1,] <- c(Peq.mut,rep(0,length(Xset)-1))
+
+
+for (i in 2:length(tset)) {		# For each timestep
+  
+  # calculate change in time
+  dt <- tset[i] - tset[i - 1]
+  
+  for (j in 1:length(Xset)) {		# For each spatial location
+    
+    H <- H.simu10[i - 1, j]			# Choose the correct previous population size
+    P <- P.simu10[i-1, j]
+    	# calculate change in population size
+		if (j == 1) { # If you're in the leftmost patch
+			dP <- (b*H*P - m*P*(1 + e*P) + D_P*(P.simu10[i-1,j+1] - P) )*dt
+			dH <- (r*H*(1 - H/(K+gamma*P)) - a_par*H*P + D_H*(H.simu10[i-1,j+1] - H) )*dt
+		} else if (j == length(Xset)) { # If you're in the rightmost patch
+			dP <- (b*H*P - m*P*(1 + e*P) + D_P*(P.simu10[i-1,j-1] - P) ) * dt
+			dH <- (r*H*(1 - H/(K+gamma*P)) - a_par*H*P + D_H*(H.simu10[i-1,j-1] - H) )*dt
+		} else { # If you're anywhere else
+			dP <- (b*H*P - m*P*(1+e*P) + D_P*(P.simu10[i-1,j-1] + P.simu10[i-1,j+1] - 2*P) )*dt
+			dH <- (r*H*(1-H/(K+gamma*P)) - a_par*H*P + D_H*(H.simu10[i-1,j-1] + H.simu10[i-1,j+1] - 2*H) )*dt
+		}
+		# calculate total population size and store in holding matrix
+		P.simu10[i, j] <- P + dP
+		H.simu10[i, j] <- H + dH
+  }
+}
+
+
+# plot H at time 0
+plot(x = Xset, y = H.simu10[1,], 
+     type = 'l', lwd = 2, col = Hcol, 
+     xlab = 'Location', ylab = 'Host Population Size', 
+     main = 'Invasion front', 
+     ylim = c(0, K), las = 1)
+# plot H at time 1000
+lines(x = Xset, y = H.simu10[1000,],
+      lwd = 2, col = 'seagreen3')
+# plot H at time 2000
+lines(x = Xset, y = H.simu10[2000,],
+      lwd = 2, col = 'seagreen2')
+# plot H at time 3000
+lines(x = Xset, y = H.simu10[3000,],
+      lwd = 2, col = 'seagreen1')
+# add a legend
+legend(x = 15, y = K*.9, 
+       legend = c('Day 0', 'Day 1000', 'Day 2000', 'Day 3000'), 
+       lwd = 2, 
+       col = c(Hcol, 'seagreen3', 'seagreen2', 'seagreen1'),
+       bg = 'white')
+
 ```
 
 ```{r}
 # agent B
+a = 0.5 
+D_P = 1
+
+r <- 1			# growth rate of host
+K <- 20			# carrying capacity of host
+gamma <- .5	# positive effect of P on H's carrying capacity
+b <- 1			# growth rate of P (encompasses conversion and attack rate)
+m <- 1			# density independent mortality of P
+e <- 1			# factor weighting density dependent mortality of P
+
+
+# create a holding matrix
+H.simu11 <- matrix(data = NA, 
+                  nrow = length(tset), ncol = length(Xset))	
+
+# fill initial conditions in the first row
+H.simu11[1, ] <- c(K, rep(0, length(Xset)-1))
+
+# create a holding matrix for P and fill initial conditions
+P.simu11 <- matrix(data=NA, 
+                  nrow = length(tset), ncol = length(Xset))
+P.simu11[1,] <- c(Peq.mut,rep(0,length(Xset)-1))
+
+
+for (i in 2:length(tset)) {		# For each timestep
+  
+  # calculate change in time
+  dt <- tset[i] - tset[i - 1]
+  
+  for (j in 1:length(Xset)) {		# For each spatial location
+    
+    H <- H.simu11[i - 1, j]			# Choose the correct previous population size
+    P <- P.simu11[i-1, j]
+    	# calculate change in population size
+		if (j == 1) { # If you're in the leftmost patch
+			dP <- (b*H*P - m*P*(1 + e*P) + D_P*(P.simu11[i-1,j+1] - P) )*dt
+			dH <- (r*H*(1 - H/(K+gamma*P)) - a_par*H*P + D_H*(H.simu11[i-1,j+1] - H) )*dt
+		} else if (j == length(Xset)) { # If you're in the rightmost patch
+			dP <- (b*H*P - m*P*(1 + e*P) + D_P*(P.simu11[i-1,j-1] - P) ) * dt
+			dH <- (r*H*(1 - H/(K+gamma*P)) - a_par*H*P + D_H*(H.simu11[i-1,j-1] - H) )*dt
+		} else { # If you're anywhere else
+			dP <- (b*H*P - m*P*(1+e*P) + D_P*(P.simu11[i-1,j-1] + P.simu11[i-1,j+1] - 2*P) )*dt
+			dH <- (r*H*(1-H/(K+gamma*P)) - a_par*H*P + D_H*(H.simu11[i-1,j-1] + H.simu11[i-1,j+1] - 2*H) )*dt
+		}
+		# calculate total population size and store in holding matrix
+		P.simu11[i, j] <- P + dP
+		H.simu11[i, j] <- H + dH
+  }
+}
+
+
+
+
+# plot H at time 0
+plot(x = Xset, y = H.simu11[1,], 
+     type = 'l', lwd = 2, col = Hcol, 
+     xlab = 'Location', ylab = 'Host Population Size', 
+     main = 'Invasion front', 
+     ylim = c(0, K), las = 1)
+# plot H at time 1000
+lines(x = Xset, y = H.simu11[1000,],
+      lwd = 2, col = 'seagreen3')
+# plot H at time 2000
+lines(x = Xset, y = H.simu11[2000,],
+      lwd = 2, col = 'seagreen2')
+# plot H at time 3000
+lines(x = Xset, y = H.simu11[3000,],
+      lwd = 2, col = 'seagreen1')
+# add a legend
+legend(x = 15, y = K*.9, 
+       legend = c('Day 0', 'Day 1000', 'Day 2000', 'Day 3000'), 
+       lwd = 2, 
+       col = c(Hcol, 'seagreen3', 'seagreen2', 'seagreen1'),
+       bg = 'white')
 ```
 
 ```{r}
 # agent C
+a = 0.05
+D_P = 10
+r <- 1			# growth rate of host
+K <- 20			# carrying capacity of host
+gamma <- .5	# positive effect of P on H's carrying capacity
+b <- 1			# growth rate of P (encompasses conversion and attack rate)
+m <- 1			# density independent mortality of P
+e <- 1			# factor weighting density dependent mortality of P
+
+
+# create a holding matrix
+H.simu12 <- matrix(data = NA, 
+                  nrow = length(tset), ncol = length(Xset))	
+
+# fill initial conditions in the first row
+H.simu12[1, ] <- c(K, rep(0, length(Xset)-1))
+
+# create a holding matrix for P and fill initial conditions
+P.simu12 <- matrix(data=NA, 
+                  nrow = length(tset), ncol = length(Xset))
+P.simu12[1,] <- c(Peq.mut,rep(0,length(Xset)-1))
+
+
+for (i in 2:length(tset)) {		# For each timestep
+  
+  # calculate change in time
+  dt <- tset[i] - tset[i - 1]
+  
+  for (j in 1:length(Xset)) {		# For each spatial location
+    
+    H <- H.simu12[i - 1, j]			# Choose the correct previous population size
+    P <- P.simu12[i-1, j]
+    	# calculate change in population size
+		if (j == 1) { # If you're in the leftmost patch
+			dP <- (b*H*P - m*P*(1 + e*P) + D_P*(P.simu12[i-1,j+1] - P) )*dt
+			dH <- (r*H*(1 - H/(K+gamma*P)) - a_par*H*P + D_H*(H.simu12[i-1,j+1] - H) )*dt
+		} else if (j == length(Xset)) { # If you're in the rightmost patch
+			dP <- (b*H*P - m*P*(1 + e*P) + D_P*(P.simu12[i-1,j-1] - P) ) * dt
+			dH <- (r*H*(1 - H/(K+gamma*P)) - a_par*H*P + D_H*(H.simu12[i-1,j-1] - H) )*dt
+		} else { # If you're anywhere else
+			dP <- (b*H*P - m*P*(1+e*P) + D_P*(P.simu12[i-1,j-1] + P.simu12[i-1,j+1] - 2*P) )*dt
+			dH <- (r*H*(1-H/(K+gamma*P)) - a_par*H*P + D_H*(H.simu12[i-1,j-1] + H.simu12[i-1,j+1] - 2*H) )*dt
+		}
+		# calculate total population size and store in holding matrix
+		P.simu12[i, j] <- P + dP
+		H.simu12[i, j] <- H + dH
+  }
+}
+
+
+
+# plot H at time 0
+plot(x = Xset, y = H.simu12[1,], 
+     type = 'l', lwd = 2, col = Hcol, 
+     xlab = 'Location', ylab = 'Host Population Size', 
+     main = 'Invasion front', 
+     ylim = c(0, K), las = 1)
+# plot H at time 1000
+lines(x = Xset, y = H.simu12[1000,],
+      lwd = 2, col = 'seagreen3')
+# plot H at time 2000
+lines(x = Xset, y = H.simu12[2000,],
+      lwd = 2, col = 'seagreen2')
+# plot H at time 3000
+lines(x = Xset, y = H.simu12[3000,],
+      lwd = 2, col = 'seagreen1')
+# add a legend
+legend(x = 15, y = K*.9, 
+       legend = c('Day 0', 'Day 1000', 'Day 2000', 'Day 3000'), 
+       lwd = 2, 
+       col = c(Hcol, 'seagreen3', 'seagreen2', 'seagreen1'),
+       bg = 'white')
 ```
 
 ```{r}
 # invasion front plot
+
+plot(x = Xset, y = H.simu10[3000,], 
+     type = 'l', lwd = 2, col = "seagreen", 
+     xlab = 'Location', ylab = 'Host Population Size', 
+     main = 'Invasion front', 
+     ylim = c(0, K), las = 1)
+# plot H at time 1000
+lines(x = Xset, y = H.simu11[3000,],
+      lwd = 2, col = 'seagreen3')
+# plot H at time 2000
+lines(x = Xset, y = H.simu12[3000,],
+      lwd = 2, col = 'seagreen1')
+# add a legend
+legend(x = 15, y = K*.9, 
+       legend = c('Agent A', 'Agent B', 'Agent C'), 
+       lwd = 2, 
+       col = c("seagreen", 'seagreen3', 'seagreen1'),
+       bg = 'white')
+
 ```
 
 
-**Write answer and rationale for control agent selection, please be concise**
+**Agent A because at the 3000 time point, species H is only at location 9 as where with Agent B and C it has invaded location 13/14. **
 
 
 = /34 points total
