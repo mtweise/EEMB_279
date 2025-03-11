@@ -1,0 +1,637 @@
+---
+title: "Modeling_project_group"
+output: html_document
+date: "2025-02-10"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Group/general info
+#Purpose:
+This is an R Markdown document for the modeling group project...
+
+```{r libraries}
+library(vegan)
+```
+
+#Parameters
+for Table 1 in the paper - setting parameters for the models
+```{r parameter, echo=FALSE}
+#VARIABLES
+#CL  #live coral on open substrate
+#CD  #dead coral
+#CP #Live coral on dead coral
+#ME #Exposed macroalgae
+#MP #Protected macroalgae
+#S #Empty space; colonizable by coral or macroalgae
+
+#PARAMETERS (change in proportional cover/year)
+gc <- 0.1 #growth rate of coral
+gm <- 0.6 #growth rate of macroalgae
+gmc <- 0.06 #Overgrowth rate of macroalgae onto live coral
+dc <- 0.001 #Death rate of coral
+dm <- 0.05 #Senescence rate of macroalgae
+e <- 0.01 #Erosion rate of dead coral
+gammaC <- 0.001 #Open settlement rate of coral
+settlement <- 1 #Multiplier for rate of coral settlement onto dead coral
+gammaM <- 0.001 #Open settlement rate of macroalgae
+h <- 0.3 #Ambient herbivory rate
+p <- 0.5 #Algal protection; degree to which ambient herbivory is reduced for protected macroalgae
+
+```
+
+
+#Emma (equation 1)
+```{r}
+#change in proportional live coral on the reef over time (dCL/dt)
+#equation_1 <- gc*CL*S + gammaC*S - gmc*CL*(ME+MP) - dc*CL 
+```
+
+
+#Addie (equation 2)
+```{r}
+
+#dCD/dt
+#equation_2 <- dc*(CL+CP)+ MP*(h*(1-p)+dm)- gc*CP*CD-S*gammaC*CD-gm*CD*(ME+MP) - gammaM*CD- e*CD
+
+```
+
+
+#Mads (equation 3)
+```{r}
+#change in proportional cover of live coral growing on dead coral over time (dCP/dt)
+#dCP/dt = GC* CP*CD + s*gammaC*CD - gmc*CP*(ME+MP) - dc*CP - e*CP
+#equation_3 <- gc*CP*CD + settlement*gammaC*CD - gmc*CP*(ME + MP) - dc*CP - e*CP
+
+```
+
+#Equation 4
+```{r}
+#dME/dt= gm*ME*S + gammaM*S - ME(h+dm)
+#equation_4 <- gm*ME*S + gammaM*S - ME*(h+dm)
+```
+
+
+#Equation 5
+```{r}
+#dMP/dt = gm*MP*CD +gm*ME*CD + gmc*CL(ME+MP) +gmc*CP*(ME+MP) + gammaM*CD - MP(h(1-p) +dm + e)
+#equation_5 <- gm*MP*CD +gm*ME*CD + gmc*CL*(ME+MP) +gmc*CP*(ME+MP) + gammaM*CD - MP*(h*(1-p) +dm + e)
+```
+
+#Equation 6
+```{r}
+#S = 1 - CL - CD - CP - ME - MP
+#equation_6 <- 1 - CL - CD - CP - ME - MP
+```
+
+
+#Begin model simulation 1
+
+
+#Initial conditions
+```{r}
+#VARIABLES
+#CL  #live coral on open substrate
+#CD  #dead coral
+#CP #Live coral on dead coral
+#ME #Exposed macroalgae
+#MP #Protected macroalgae
+#S #Empty space; colonizable by coral or macroalgae
+
+#PARAMETERS (change in proportional cover/year)
+gc <- 0.1 #growth rate of coral
+gm <- 0.6 #growth rate of macroalgae
+gmc <- 0.06 #Overgrowth rate of macroalgae onto live coral
+dc <- 0.001 #Death rate of coral
+dm <- 0.05 #Senescence rate of macroalgae
+e <- 0.01 #Erosion rate of dead coral
+gammaC <- 0.001 #Open settlement rate of coral
+settlement <- 1 #Multiplier for rate of coral settlement onto dead coral
+gammaM <- 0.001 #Open settlement rate of macroalgae
+h <- 0.3 #Ambient herbivory rate
+p <- 0.5 #Algal protection; degree to which ambient herbivory is reduced for protected macroalgae
+```
+
+#Set up our storage variables and fill them with our initial conditions. **Note:** Now we'll need one for each "state" of the population.
+
+#Struture Retaining, higher macrolgae growth rate
+
+```{r}
+# create a vector of timesteps
+tset1 <- seq(from = 0, to = 1000, length.out = 10005)
+
+# create holding vectors and fill initial conditions - inital conditions represent proportional cover of the benthos
+CL.simu1 <- NaN*tset1; CL.simu1[1] <- 0.02  #live coral
+CD.simu1 <- NaN*tset1; CD.simu1[1] <- 0.7 #dead coral
+CP.simu1 <- NaN*tset1; CP.simu1[1] <- 0 #live coral on dead coral
+ME.simu1 <- NaN*tset1; ME.simu1[1] <- 0.1 #exposed macroalgae
+MP.simu1 <- NaN*tset1; MP.simu1[1] <- 0.18 #protected macroalgae
+S.simu1 <- NaN*tset1; S.simu1[1] <- 0 #empty space, not sure what to put here
+
+# for each timestep
+for(i in 2:length(tset1)){
+  # calculate change in time
+	dt <- tset1[i]-tset1[i-1]
+	
+	# store placeholder variables
+	CL <- CL.simu1[i-1]
+	CD <- CD.simu1[i-1]
+	CP <- CP.simu1[i-1]
+	ME <- ME.simu1[i-1]
+	MP <- MP.simu1[i-1]
+   S <- S.simu1[i-1]
+	
+	# calculate change in resource level and population size 
+	dCL <- (gc*CL*S + gammaC*S - gmc*CL*(ME+MP) - dc*CL)*dt #equation 1
+	dCD <- (dc*(CL+CP)+ MP*(h*(1-p)+dm) - gc*CP*CD - settlement*gammaC*CD - gm*CD*(ME+MP) - gammaM*CD - e*CD)*dt #equation 2
+	dCP <- (gc*CP*CD + settlement*gammaC*CD - gmc*CP*(ME + MP) - dc*CP - e*CP)*dt #equation 3
+	dME <- (gm*ME*S + gm*MP*S + gammaM*S - ME*(h+dm))*dt #equation 4
+	dMP <- (gm*MP*CD + gm*ME*CD + gmc*CL*(ME+MP) + gmc*CP*(ME+MP) + gammaM*CD - MP*(h*(1-p) + dm + e))*dt #equation 5
+   dS <- (1 - CL - CD - CP - ME - MP)*dt #can i do that??? #equation 6
+	
+	# calculate total size
+	CL.simu1[i] <- CL + dCL
+	CD.simu1[i] <- CD + dCD
+	CP.simu1[i] <- CP + dCP
+	ME.simu1[i] <- ME + dME
+	MP.simu1[i] <- MP + dMP
+	S.simu1[i] <- S + dS
+}
+
+#check loop worked
+head(CL.simu1)
+tail(MP.simu1)
+
+```
+
+##plots
+
+```{r}
+#plot
+# store colors for variables
+CLcol <- 'coral'
+CDcol <- 'brown'
+CPcol <- 'pink'
+MEcol <- 'seagreen'
+MPcol <- 'green'
+Scol <- 'gray'
+
+# plot coral as a function of time
+plot(x = tset1, y = CL.simu1,
+     type = 'l', las = 1, lwd = 2, col = CLcol,
+     ylim = c(0, 1),
+     xlab = 'Time', ylab = 'Population Size',
+     main = "Coral community after structure retaining disturbance")
+ lines(x = tset1, y = CD.simu1,
+      lwd = 2, col = CDcol)
+ lines(x = tset1, y = CP.simu1,
+      lwd = 2, col = CPcol )
+ legend(x = 'topright', legend = c('CL', 'CD', 'CP'), lwd = 5, col = c(CLcol, CDcol, CPcol))
+
+# plot population macroalgae as a function of time
+plot(x = tset1, y = ME.simu1,
+     type = 'l', las = 1, lwd = 2, col = MEcol,
+     xlab = 'Time', ylab = 'Population Size',
+     main = "Macroalgal community after structure retaining disturbance")
+lines(x = tset1, y = MP.simu1,
+      lwd = 2, col = MPcol)
+legend(x = 'topright', legend = c('ME', 'MP'), lwd = 5, col = c(MEcol, MPcol))
+
+# plot open space as a function of time
+plot(x = tset1, y = S.simu1,
+     type = 'l', las = 1, lwd = 2, col = "grey",
+     xlab = 'Time', ylab = 'Population Size',
+     main = "Empty space after structure retaining disturbance")
+legend(x = 'topright', legend = c('open space'), lwd = 5)
+```
+
+#Structure Removing, higher macroalgae growth rate
+```{r}
+#create a vector of timesteps
+tset1 <- seq(from = 0, to = 1000, length.out = 10005)
+
+# create holding vectors and fill initial conditions - inital conditions represent proportional cover of the benthos
+CL.simu2 <- NaN*tset1; CL.simu2[1] <- 0.15  #live coral
+CD.simu2 <- NaN*tset1; CD.simu2[1] <- 0.1 #dead coral
+CP.simu2 <- NaN*tset1; CP.simu2[1] <- 0 #live coral on dead coral
+ME.simu2 <- NaN*tset1; ME.simu2[1] <- 0.15 #exposed macroalgae
+MP.simu2 <- NaN*tset1; MP.simu2[1] <- 0.0 #protected macroalgae
+S.simu2 <- NaN*tset1; S.simu2[1] <- 0.6 #empty space, not sure what to put here
+
+# for each timestep
+for(i in 2:length(tset1)){
+  # calculate change in time
+	dt <- tset1[i]-tset1[i-1]
+	
+	# store placeholder variables
+	CL <- CL.simu2[i-1]
+	CD <- CD.simu2[i-1]
+	CP <- CP.simu2[i-1]
+	ME <- ME.simu2[i-1]
+	MP <- MP.simu2[i-1]
+   S <- S.simu2[i-1]
+	
+	# calculate change in resource level and population size 
+	dCL <- (gc*CL*S + gammaC*S - gmc*CL*(ME+MP) - dc*CL)*dt #equation 1
+	dCD <- (dc*(CL+CP)+ MP*(h*(1-p)+dm) - gc*CP*CD - settlement*gammaC*CD - gm*CD*(ME+MP) - gammaM*CD - e*CD)*dt #equation 2
+	dCP <- (gc*CP*CD + settlement*gammaC*CD - gmc*CP*(ME + MP) - dc*CP - e*CP)*dt #equation 3
+	dME <- (gm*ME*S + gm*MP*S + gammaM*S - ME*(h+dm))*dt #equation 4
+	dMP <- (gm*MP*CD + gm*ME*CD + gmc*CL*(ME+MP) + gmc*CP*(ME+MP) + gammaM*CD - MP*(h*(1-p) + dm + e))*dt #equation 5
+   dS <- (1 - CL - CD - CP - ME - MP)*dt #can i do that??? #equation 6
+	
+	# calculate total size
+	CL.simu2[i] <- CL + dCL
+	CD.simu2[i] <- CD + dCD
+	CP.simu2[i] <- CP + dCP
+	ME.simu2[i] <- ME + dME
+	MP.simu2[i] <- MP + dMP
+	S.simu2[i] <- S + dS
+}
+
+#check loop worked
+head(CL.simu2)
+tail(MP.simu2)
+
+```
+
+## plots
+
+```{r}
+# plot coral as a function of time
+plot(x = tset1, y = CL.simu2,
+     type = 'l', las = 1, lwd = 2, col = CLcol,
+     ylim = c(0, 1),
+     xlab = 'Time', ylab = 'Population Size',
+     main = "Coral community after structure removing disturbance")
+ lines(x = tset1, y = CD.simu2,
+      lwd = 2, col = CDcol)
+ lines(x = tset1, y = CP.simu2,
+      lwd = 2, col = CPcol )
+ legend(x = 'topright', legend = c('CL', 'CD', 'CP'), lwd = 5, col = c(CLcol, CDcol, CPcol))
+
+# plot population macroalgae as a function of time
+plot(x = tset1, y = ME.simu2,
+     type = 'l', las = 1, lwd = 2, col = MEcol,
+     xlab = 'Time', ylab = 'Population Size',
+     main = "Macroalgal community after structure removing disturbance")
+lines(x = tset1, y = MP.simu2,
+      lwd = 2, col = MPcol)
+legend(x = 'topright', legend = c('ME', 'MP'), lwd = 5, col = c(MEcol, MPcol))
+
+# plot open space as a function of time
+plot(x = tset1, y = S.simu2,
+     type = 'l', las = 1, lwd = 2, col = "grey",
+     xlab = 'Time', ylab = 'Population Size',
+     main = "Empty space after structure removing disturbance")
+legend(x = 'topright', legend = c('open space'), lwd = 5)
+```
+
+# Changing macroalgae growth rate from 0.6 to 0.3
+
+
+# Structure retaining, lower macroalgae growth rate
+
+```{r}
+gm_2 <- 0.3 #DECREASING growth rate of macroalgae
+
+# create a vector of timesteps
+tset1 <- seq(from = 0, to = 1000, length.out = 10005)
+
+# create holding vectors and fill initial conditions - inital conditions represent proportional cover of the benthos
+CL.simu3 <- NaN*tset1; CL.simu3[1] <- 0.02  #live coral
+CD.simu3 <- NaN*tset1; CD.simu3[1] <- 0.7 #dead coral
+CP.simu3 <- NaN*tset1; CP.simu3[1] <- 0 #live coral on dead coral
+ME.simu3 <- NaN*tset1; ME.simu3[1] <- 0.1 #exposed macroalgae
+MP.simu3 <- NaN*tset1; MP.simu3[1] <- 0.18 #protected macroalgae
+S.simu3 <- NaN*tset1; S.simu3[1] <- 0 #empty space, not sure what to put here
+
+# for each timestep
+for(i in 2:length(tset1)){
+  # calculate change in time
+	dt <- tset1[i]-tset1[i-1]
+	
+	# store placeholder variables
+	CL <- CL.simu3[i-1]
+	CD <- CD.simu3[i-1]
+	CP <- CP.simu3[i-1]
+	ME <- ME.simu3[i-1]
+	MP <- MP.simu3[i-1]
+   S <- S.simu3[i-1]
+	
+	# calculate change in resource level and population size 
+	dCL <- (gc*CL*S + gammaC*S - gmc*CL*(ME+MP) - dc*CL)*dt #equation 1
+	dCD <- (dc*(CL+CP)+ MP*(h*(1-p)+dm) - gc*CP*CD - settlement*gammaC*CD - gm_2*CD*(ME+MP) - gammaM*CD - e*CD)*dt #equation 2
+	dCP <- (gc*CP*CD + settlement*gammaC*CD - gmc*CP*(ME + MP) - dc*CP - e*CP)*dt #equation 3
+	dME <- (gm_2*ME*S + gm_2*MP*S + gammaM*S - ME*(h+dm))*dt #equation 4
+	dMP <- (gm_2*MP*CD + gm_2*ME*CD + gmc*CL*(ME+MP) + gmc*CP*(ME+MP) + gammaM*CD - MP*(h*(1-p) + dm + e))*dt #equation 5
+   dS <- (1 - CL - CD - CP - ME - MP)*dt #can i do that??? #equation 6
+	
+	# calculate total size
+	CL.simu3[i] <- CL + dCL
+	CD.simu3[i] <- CD + dCD
+	CP.simu3[i] <- CP + dCP
+	ME.simu3[i] <- ME + dME
+	MP.simu3[i] <- MP + dMP
+	S.simu3[i] <- S + dS
+}
+
+#check loop worked
+head(CL.simu3)
+tail(MP.simu3)
+
+```
+
+## Plots
+
+```{r}
+# plot coral as a function of time
+plot(x = tset1, y = CL.simu3,
+     type = 'l', las = 1, lwd = 2, col = CLcol,
+     ylim = c(0, 1),
+     xlab = 'Time', ylab = 'Population Size',
+     main = "Coral community after structure retaining disturbance")
+ lines(x = tset1, y = CD.simu3,
+      lwd = 2, col = CDcol)
+ lines(x = tset1, y = CP.simu3,
+      lwd = 2, col = CPcol )
+ legend(x = 'topright', legend = c('CL', 'CD', 'CP'), lwd = 5, col = c(CLcol, CDcol, CPcol))
+
+# plot population macroalgae as a function of time
+plot(x = tset1, y = ME.simu3,
+     type = 'l', las = 1, lwd = 2, col = MEcol,
+     xlab = 'Time', ylab = 'Population Size',
+     main = "Macroalgal community after structure retaining disturbance")
+lines(x = tset1, y = MP.simu3,
+      lwd = 2, col = MPcol)
+legend(x = 'topright', legend = c('ME', 'MP'), lwd = 5, col = c(MEcol, MPcol))
+
+# plot open space as a function of time
+plot(x = tset1, y = S.simu3,
+     type = 'l', las = 1, lwd = 2, col = "grey",
+     xlab = 'Time', ylab = 'Population Size',
+     main = "Empty space after structure retaining disturbance")
+legend(x = 'topright', legend = c('open space'), lwd = 5)
+```
+
+
+#Structure removing, lower macroalgae growth rate
+
+```{r}
+# create a vector of timesteps
+tset1 <- seq(from = 0, to = 1000, length.out = 10005)
+
+# create holding vectors and fill initial conditions - inital conditions represent proportional cover of the benthos
+CL.simu4 <- NaN*tset1; CL.simu4[1] <- 0.15  #live coral
+CD.simu4 <- NaN*tset1; CD.simu4[1] <- 0.1 #dead coral
+CP.simu4 <- NaN*tset1; CP.simu4[1] <- 0 #live coral on dead coral
+ME.simu4 <- NaN*tset1; ME.simu4[1] <- 0.15 #exposed macroalgae
+MP.simu4 <- NaN*tset1; MP.simu4[1] <- 0.0 #protected macroalgae
+S.simu4 <- NaN*tset1; S.simu4[1] <- 0.6 #empty space, not sure what to put here
+
+# for each timestep
+for(i in 2:length(tset1)){
+  # calculate change in time
+	dt <- tset1[i]-tset1[i-1]
+	
+	# store placeholder variables
+	CL <- CL.simu4[i-1]
+	CD <- CD.simu4[i-1]
+	CP <- CP.simu4[i-1]
+	ME <- ME.simu4[i-1]
+	MP <- MP.simu4[i-1]
+   S <- S.simu4[i-1]
+	
+	# calculate change in resource level and population size 
+	dCL <- (gc*CL*S + gammaC*S - gmc*CL*(ME+MP) - dc*CL)*dt #equation 1
+	dCD <- (dc*(CL+CP)+ MP*(h*(1-p)+dm) - gc*CP*CD - settlement*gammaC*CD - gm_2*CD*(ME+MP) - gammaM*CD - e*CD)*dt #equation 2
+	dCP <- (gc*CP*CD + settlement*gammaC*CD - gmc*CP*(ME + MP) - dc*CP - e*CP)*dt #equation 3
+	dME <- (gm_2*ME*S + gm_2*MP*S + gammaM*S - ME*(h+dm))*dt #equation 4
+	dMP <- (gm_2*MP*CD + gm_2*ME*CD + gmc*CL*(ME+MP) + gmc*CP*(ME+MP) + gammaM*CD - MP*(h*(1-p) + dm + e))*dt #equation 5
+   dS <- (1 - CL - CD - CP - ME - MP)*dt #can i do that??? #equation 6
+	
+	# calculate total size
+	CL.simu4[i] <- CL + dCL
+	CD.simu4[i] <- CD + dCD
+	CP.simu4[i] <- CP + dCP
+	ME.simu4[i] <- ME + dME
+	MP.simu4[i] <- MP + dMP
+	S.simu4[i] <- S + dS
+}
+
+#check loop worked
+head(CL.simu4)
+tail(MP.simu4)
+```
+
+## Plots
+
+```{r}
+# plot coral as a function of time
+plot(x = tset1, y = CL.simu4,
+     type = 'l', las = 1, lwd = 2, col = CLcol,
+     ylim = c(0, 1),
+     xlab = 'Time', ylab = 'Population Size',
+     main = "Coral community after structure removing disturbance")
+ lines(x = tset1, y = CD.simu4,
+      lwd = 2, col = CDcol)
+ lines(x = tset1, y = CP.simu4,
+      lwd = 2, col = CPcol )
+ legend(x = 'topright', legend = c('CL', 'CD', 'CP'), lwd = 5, col = c(CLcol, CDcol, CPcol))
+
+# plot population macroalgae as a function of time
+plot(x = tset1, y = ME.simu4,
+     type = 'l', las = 1, lwd = 2, col = MEcol,
+     xlab = 'Time', ylab = 'Population Size',
+     main = "Macroalgal community after structure removing disturbance")
+lines(x = tset1, y = MP.simu4,
+      lwd = 2, col = MPcol)
+legend(x = 'topright', legend = c('ME', 'MP'), lwd = 5, col = c(MEcol, MPcol))
+
+# plot open space as a function of time
+plot(x = tset1, y = S.simu4,
+     type = 'l', las = 1, lwd = 2, col = "grey",
+     xlab = 'Time', ylab = 'Population Size',
+     main = "Empty space after structure removing disturbance")
+legend(x = 'topright', legend = c('open space'), lwd = 5)
+```
+
+
+#NEXT STEPS:
+###update simu above for structure retaining vs removing (DONE)
+- this is showing weird oscillations? 
+
+###pick param to change (macro growth rate) and re-run each simu with new growth of macroalgae (DONE)
+
+###bifurcation diagram of macro growth rate against live coral cover?
+
+#Bifurcation diagram - macroalgae growth rate 
+
+```{r}
+gmset <- seq(from = 0, to = 7,length.out = 400) #dont know what numbers to put here
+
+CLstarset <- NaN*gmset
+MEstarset <- NaN*gmset
+
+CDstarset <- NaN*gmset
+CPstarset <- NaN*gmset
+MPstarset <- NaN*gmset
+Sstarset <- NaN*gmset
+
+for(j in 1:length(gmset)){
+    gm <- gmset[j] 
+    
+#holding vectors and initial conditions for live coral and exposed macroalgae cover  
+    CL.simu5 <- NaN*tset1; CL.simu5[1] <-  0.02  
+    ME.simu5 <- NaN*tset1; ME.simu5[1] <- 0.1
+    
+    CD.simu5 <- NaN*tset1; CD.simu5[1] <- 0.7 #dead coral
+    CP.simu5 <- NaN*tset1; CP.simu5[1] <- 0 #live coral on dead coral
+    MP.simu5 <- NaN*tset1; MP.simu5[1] <- 0.18 #protected macroalgae
+    S.simu5 <- NaN*tset1; S.simu5[1] <- 0 #empty space, not sure what to put here
+
+
+    
+    for(i in 2:length(tset1)){
+        dt <- tset1[i]-tset1[i-1]
+        
+        # storing temporary variables
+        CL <- CL.simu5[i-1]
+        ME <- ME.simu5[i-1]
+        
+        CD <- CD.simu5[i-1]
+      	CP <- CP.simu5[i-1]
+      	MP <- MP.simu5[i-1]
+        S <- S.simu5[i-1]
+        
+        # calculating change in population size
+        dCL <- (gc*CL*S + gammaC*S - gmc*CL*(ME+MP) - dc*CL)*dt
+        dME <- (gm_2*ME*S + gm*MP*S + gammaM*S - ME*(h+dm))*dt
+        
+        dCD <- (dc*(CL+CP)+ MP*(h*(1-p)+dm) - gc*CP*CD - settlement*gammaC*CD - gm*CD*(ME+MP) - gammaM*CD - e*CD)*dt 
+	      dCP <- (gc*CP*CD + settlement*gammaC*CD - gmc*CP*(ME + MP) - dc*CP - e*CP)*dt 
+	      dMP <- (gm*MP*CD + gm*ME*CD + gmc*CL*(ME+MP) + gmc*CP*(ME+MP) + gammaM*CD - MP*(h*(1-p) + dm + e))*dt 
+        dS <- (1 - CL - CD - CP - ME - MP)*dt 
+        
+        # calculating total population size
+        CL.simu5[i] <- CL.simu5[i-1] + dCL
+        ME.simu5[i] <- ME.simu5[i-1] + dME
+        
+        CD.simu5[i] <- CD.simu5[i-1] + dCD
+        CP.simu5[i] <- CP.simu5[i-1] + dCP
+	      MP.simu5[i] <- MP.simu5[i-1] + dMP
+	      S.simu5[i] <- S.simu5[i-1] + dS
+	      
+    }
+    
+    # storing last population size (equilibrium population size) in holding vector
+    CLstarset[j] <- CL.simu5[length(tset1)]
+    MEstarset[j] <- ME.simu5[length(tset1)]
+    
+    CDstarset[j] <- CD.simu5[length(tset1)]
+    CPstarset[j] <- CP.simu5[length(tset1)]
+    MPstarset[j] <- MP.simu5[length(tset1)]
+    Sstarset[j] <- S.simu5[length(tset1)]
+    
+}
+```
+
+## Plots 
+```{r}
+#Live coral bifurcation diagram
+plot(x = gmset, y = CLstarset,
+     type = 'l', lwd = 2, col = CLcol, las = 1,
+     xlab = 'Growth Rate of Macroalgae, gm', ylab = 'Stable equilibria of Live Coral Cover, CL*',
+     ylim = )
+
+#Exposed Macroalgae bifurcation diagram
+plot(x = gmset, y = MEstarset,
+     type = 'l', lwd = 2, col = MEcol, las = 1,
+     xlab = 'Growth Rate of Macroalgae, gm', ylab = 'Stable equilibria of Exposed Macroalgae, ME*')
+```
+```{r}
+pset <- seq(from = 0, to = 1,length.out = 100) #dont know what numbers to put here
+
+CLstarset <- NaN*pset
+MEstarset <- NaN*pset
+
+CDstarset <- NaN*pset
+CPstarset <- NaN*pset
+MPstarset <- NaN*pset
+Sstarset <- NaN*pset
+
+for(j in 1:length(pset)){
+    p <- pset[j] 
+    
+#holding vectors and initial conditions for live coral and exposed macroalgae cover  
+    CL.simu6 <- NaN*tset1; CL.simu6[1] <-  0.9  
+    ME.simu6 <- NaN*tset1; ME.simu6[1] <- 0.1
+    
+    CD.simu6 <- NaN*tset1; CD.simu6[1] <- 0 #dead coral
+    CP.simu6 <- NaN*tset1; CP.simu6[1] <- 0 #live coral on dead coral
+    MP.simu6 <- NaN*tset1; MP.simu6[1] <- 0 #protected macroalgae
+    S.simu6 <- NaN*tset1; S.simu6[1] <- 0 #empty space, not sure what to put here
+
+
+    
+    for(i in 2:length(tset1)){
+        dt <- tset1[i]-tset1[i-1]
+        
+        # storing temporary variables
+        CL <- CL.simu6[i-1]
+        ME <- ME.simu6[i-1]
+        
+        CD <- CD.simu6[i-1]
+      	CP <- CP.simu6[i-1]
+      	MP <- MP.simu6[i-1]
+        S <- S.simu6[i-1]
+        
+        # calculating change in population size
+        dCL <- (gc*CL*S + gammaC*S - gmc*CL*(ME+MP) - dc*CL)*dt
+        dME <- (gm_2*ME*S + gm*MP*S + gammaM*S - ME*(h+dm))*dt
+        
+        dCD <- (dc*(CL+CP)+ MP*(h*(1-p)+dm) - gc*CP*CD - settlement*gammaC*CD - gm*CD*(ME+MP) - gammaM*CD - e*CD)*dt 
+	      dCP <- (gc*CP*CD + settlement*gammaC*CD - gmc*CP*(ME + MP) - dc*CP - e*CP)*dt 
+	      dMP <- (gm*MP*CD + gm*ME*CD + gmc*CL*(ME+MP) + gmc*CP*(ME+MP) + gammaM*CD - MP*(h*(1-p) + dm + e))*dt 
+        dS <- (1 - CL - CD - CP - ME - MP)*dt 
+        
+        # calculating total population size
+        CL.simu6[i] <- CL.simu6[i-1] + dCL
+        ME.simu6[i] <- ME.simu6[i-1] + dME
+        
+        CD.simu6[i] <- CD.simu6[i-1] + dCD
+        CP.simu6[i] <- CP.simu6[i-1] + dCP
+	      MP.simu6[i] <- MP.simu6[i-1] + dMP
+	      S.simu6[i] <- S.simu6[i-1] + dS
+	      
+    }
+    
+    # storing last population size (equilibrium population size) in holding vector
+    CLstarset[j] <- CL.simu6[length(tset1)]
+    MEstarset[j] <- ME.simu6[length(tset1)]
+    
+    CDstarset[j] <- CD.simu6[length(tset1)]
+    CPstarset[j] <- CP.simu6[length(tset1)]
+    MPstarset[j] <- MP.simu6[length(tset1)]
+    Sstarset[j] <- S.simu6[length(tset1)]
+    
+}
+
+#Live coral bifurcation diagram
+plot(x = pset, y = CLstarset,
+     type = 'l', lwd = 2, col = CLcol, las = 1,
+     xlab = 'p', ylab = 'Stable equilibria of Live Coral Cover, CL*',
+     ylim = )
+
+#Exposed Macroalgae bifurcation diagram
+plot(x = pset, y = MEstarset,
+     type = 'l', lwd = 2, col = MEcol, las = 1,
+     xlab = 'p', ylab = 'Stable equilibria of Exposed Macroalgae, ME*')
+```
+
+
+#FROM GUIDELINES:
+At least one figure* presenting time-series simulations of the model. This figure should show how outcomes differ as a function of an interesting parameter(s). Make sure your figure includes a caption! (If you have many state variables, sometimes it’s helpful for this to be split into two or more figures.)
+
+At least one figure* presenting a bifurcation diagram with respect to an interesting parameter. Make sure your figure includes a descriptive caption!
