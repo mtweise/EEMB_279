@@ -116,7 +116,7 @@ p <- 0.5 #Algal protection; degree to which ambient herbivory is reduced for pro
 
 #Set up our storage variables and fill them with our initial conditions. **Note:** Now we'll need one for each "state" of the population.
 
-#Struture Retaining, higher macrolgae growth rate
+#Struture Retaining, higher macroalgae growth rate
 
 ```{r}
 # create a vector of timesteps
@@ -287,6 +287,66 @@ plot(x = tset1, y = S.simu2,
      main = "Empty space after structure removing disturbance")
 legend(x = 'topright', legend = c('open space'), lwd = 5)
 ```
+# Extension- tmperature dependent growth
+#Struture Retaining, higher macroalgae growth rate
+```{r}
+# create a vector of timesteps
+tset1 <- seq(from = 0, to = 1000, length.out = 10005)
+
+# create holding vectors and fill initial conditions - inital conditions represent proportional cover of the benthos
+CL.simu1 <- NaN*tset1; CL.simu1[1] <- 0.02  #live coral
+CD.simu1 <- NaN*tset1; CD.simu1[1] <- 0.7 #dead coral
+CP.simu1 <- NaN*tset1; CP.simu1[1] <- 0 #live coral on dead coral
+ME.simu1 <- NaN*tset1; ME.simu1[1] <- 0.1 #exposed macroalgae
+MP.simu1 <- NaN*tset1; MP.simu1[1] <- 0.18 #protected macroalgae
+S.simu1 <- NaN*tset1; S.simu1[1] <- 0 #empty space, not sure what to put here
+
+# for each timestep
+for(i in 2:length(tset1)){
+  # calculate change in time
+	dt <- tset1[i]-tset1[i-1]
+	
+	# store placeholder variables
+	CL <- CL.simu1[i-1]
+	CD <- CD.simu1[i-1]
+	CP <- CP.simu1[i-1]
+	ME <- ME.simu1[i-1]
+	MP <- MP.simu1[i-1]
+   S <- S.simu1[i-1]
+	
+	# calculate change in resource level and population size 
+	dCL <- (gc*CL*S + gammaC*S - gmc*CL*(ME+MP) - dc*CL)*dt #equation 1
+	dCD <- (dc*(CL+CP)+ MP*(h*(1-p)+dm) - gc*CP*CD - settlement*gammaC*CD - gm*CD*(ME+MP) - gammaM*CD - e*CD)*dt #equation 2
+	dCP <- (gc*CP*CD + settlement*gammaC*CD - gmc*CP*(ME + MP) - dc*CP - e*CP)*dt #equation 3
+	dME <- (gm*ME*S + gm*MP*S + gammaM*S - ME*(h+dm))*dt #equation 4
+	dMP <- (gm*MP*CD + gm*ME*CD + gmc*CL*(ME+MP) + gmc*CP*(ME+MP) + gammaM*CD - MP*(h*(1-p) + dm + e))*dt #equation 5
+   dS <- (1 - CL - CD - CP - ME - MP)*dt #can i do that??? #equation 6
+	
+	# calculate total size
+	CL.simu1[i] <- CL + dCL
+	CD.simu1[i] <- CD + dCD
+	CP.simu1[i] <- CP + dCP
+	ME.simu1[i] <- ME + dME
+	MP.simu1[i] <- MP + dMP
+	S.simu1[i] <- S + dS
+}
+
+#check loop worked
+head(CL.simu1)
+tail(MP.simu1)
+```
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Changing macroalgae growth rate from 0.6 to 0.3
 
