@@ -44,7 +44,6 @@ p <- 0.5 #Algal protection; degree to which ambient herbivory is reduced for pro
 
 
 #Testing scenarios with macroalgae growth rate used by Kopecky et al (2023)
-#Strcuture retaining
 ```{r}
 # create a vector of timesteps
 tset1 <- seq(from = 0, to = 1000, length.out = 10005)
@@ -66,14 +65,15 @@ Scol <- 'gray'
 
 # Extension- temperature dependent growth
 #Structure retaining
+#27C
 ```{r}
 # Define a function for gc as a function of temperature
 gc_function <- function(temp) {
-  max(0, 0.1 - 0.02 * (temp - 25))  # Growth decreases by 0.02 per °C increase
+  max(0, 0.1 - 0.02 * (temp - 25))  # Growth decreases by 0.02 per 1C increase
 }
 
-# Set temperature scenario (adjust this as needed)
-temperature <- 27  # Example: setting temperature to 27°C
+# Set temperature scenario 1
+temperature <- 27  # Setting temperature to 27C
 
 # Use the function to determine gc for the given temperature
 gc <- gc_function(temperature)
@@ -88,14 +88,10 @@ MP.simu.ext <- NaN*tset1; MP.simu.ext[1] <- 0.18 #protected macroalgae
 S.simu.ext <- NaN*tset1; S.simu.ext[1] <- 0 #empty space
 
 
-
 # Loop through timesteps
 for(i in 2:length(tset1)){
   dt <- tset1[i] - tset1[i-1]
 
-  # Get current temperature and calculate gc
-  T_current <- Tset[i]
-  gc <- gc_function(T_current)
 
   # Store previous timestep values
   CL <- CL.simu.ext[i-1]
@@ -125,7 +121,7 @@ for(i in 2:length(tset1)){
 ```
 
 
-#Extension- retaining plots
+#Extension- retaining plots (double check first simu ran)
 ```{r}
 # plot coral as a function of time
 plot(x = tset1, y = CL.simu.ext,
@@ -133,7 +129,7 @@ plot(x = tset1, y = CL.simu.ext,
      ylim = c(0, 1),
      xlim= c(0, 50),
      xlab = 'Time', ylab = 'Population Size',
-     main = "Extension- Coral community after structure removing disturbance")
+     main = "Extension 27C- Coral community after structure retaining disturbance")
  lines(x = tset1, y = CD.simu.ext,
       lwd = 2, col = CDcol)
  lines(x = tset1, y = CP.simu.ext,
@@ -144,7 +140,7 @@ plot(x = tset1, y = CL.simu.ext,
 plot(x = tset1, y = ME.simu.ext,
      type = 'l', las = 1, lwd = 2, col = MEcol,
      xlab = 'Time', ylab = 'Population Size',
-     main = "Extension- Macroalgal community after structure removing disturbance")
+     main = "Extension 27C- Macroalgal community after structure retaining disturbance")
 lines(x = tset1, y = MP.simu.ext,
       lwd = 2, col = MPcol)
 legend(x = 'topright', legend = c('ME', 'MP'), lwd = 5, col = c(MEcol, MPcol))
@@ -153,17 +149,13 @@ legend(x = 'topright', legend = c('ME', 'MP'), lwd = 5, col = c(MEcol, MPcol))
 plot(x = tset1, y = S.simu.ext,
      type = 'l', las = 1, lwd = 2, col = "grey",
      xlab = 'Time', ylab = 'Population Size',
-     main = "Extension- Empty space after structure removing disturbance")
+     main = "Extension 27C- Empty space after structure retaining disturbance")
 legend(x = 'topright', legend = c('open space'), lwd = 5)
 ```
 ```{r}
-# Define a function for gc as a function of temperature
-gc_function <- function(temp) {
-  max(0, 0.1 - 0.02 * (temp - 25))  # Growth decreases by 0.02 per °C increase
-}
 
-# Set temperature scenario (adjust this as needed)
-temperature <- 29  # Example: setting temperature to 27°C
+# Set temperature scenario
+temperature <- 29  # Setting temperature to 29C
 
 # Use the function to determine gc for the given temperature
 gc <- gc_function(temperature)
@@ -183,9 +175,6 @@ S.simu.ext2 <- NaN*tset1; S.simu.ext2[1] <- 0 #empty space
 for(i in 2:length(tset1)){
   dt <- tset1[i] - tset1[i-1]
 
-  # Get current temperature and calculate gc
-  T_current <- Tset[i]
-  gc <- gc_function(T_current)
 
   # Store previous timestep values
   CL <- CL.simu.ext2[i-1]
@@ -214,9 +203,9 @@ for(i in 2:length(tset1)){
 ```
 
 
-
+#25C
 ```{r}
-temperature <- 25  # Example: setting temperature to 27°C
+temperature <- 25  # Example: setting temperature to 25°C
 
 # Use the function to determine gc for the given temperature
 gc <- gc_function(temperature)
@@ -236,9 +225,6 @@ S.simu.ext3 <- NaN*tset1; S.simu.ext3[1] <- 0 #empty space
 for(i in 2:length(tset1)){
   dt <- tset1[i] - tset1[i-1]
 
-  # Get current temperature and calculate gc
-  T_current <- Tset[i]
-  gc <- gc_function(T_current)
 
   # Store previous timestep values
   CL <- CL.simu.ext3[i-1]
@@ -268,24 +254,235 @@ for(i in 2:length(tset1)){
 
 
 
-#over diff temperatures
+#Structure retaining over diff temperatures
 ```{r}
-plot(x = tset1, y = CL.simu.ext,
+plot(x = tset1, y = CL.simu.ext3,
+     type = 'l', las = 1, lwd = 2, col = 'pink',
+     ylim = c(0, 1),
+     xlab = 'Time', ylab = 'Population Size',
+     main = "Extension- Coral community after structure retaining disturbance")
+ lines(x = tset1, y = CD.simu.ext,
+      lwd = 2, col = 'red')
+ lines(x = tset1, y = CP.simu.ext2,
+      lwd = 2, col = 'brown' )
+ legend(x = 'topright', legend = c('25C', '27C', '29C'), lwd = 5, col = c('pink', 'red', 'brown'))
+ 
+ 
+ 
+ plot(x = tset1, y = ME.simu.ext3,
+     type = 'l', las = 1, lwd = 2, col = 'lightgreen',
+     ylim = c(0, 1),
+     xlab = 'Time', ylab = 'Population Size',
+     main = "Extension- Macroalgae community after structure retaining disturbance")
+ lines(x = tset1, y = CD.simu.ext,
+      lwd = 2, col = 'darkgreen')
+ lines(x = tset1, y = CP.simu.ext2,
+      lwd = 2, col = 'green' )
+ legend(x = 'topright', legend = c('25C', '27C', '29C'), lwd = 5, col = c('lightgreen', 'darkgreen', 'green'))
+```
+
+######################
+
+
+# Extension- temperature dependent growth
+#Structure removing
+```{r}
+# Define a function for gc as a function of temperature
+gc_function <- function(temp) {
+  max(0, 0.1 - 0.02 * (temp - 25))  # Growth decreases by 0.02 per 1C increase
+}
+
+# Set temperature scenario 1
+temperature <- 27  # Setting temperature to 27C
+
+# Use the function to determine gc for the given temperature
+gc <- gc_function(temperature)
+
+
+# create holding vectors and fill initial conditions - inital conditions represent proportional cover of the benthos
+CL.simu.ext4 <- NaN*tset1; CL.simu.ext4[1] <- 0.15  #live coral
+CD.simu.ext4 <- NaN*tset1; CD.simu.ext4[1] <- 0.1 #dead coral
+CP.simu.ext4 <- NaN*tset1; CP.simu.ext4[1] <- 0 #live coral on dead coral
+ME.simu.ext4 <- NaN*tset1; ME.simu.ext4[1] <- 0.15 #exposed macroalgae
+MP.simu.ext4 <- NaN*tset1; MP.simu.ext4[1] <- 0.0 #protected macroalgae
+S.simu.ext4 <- NaN*tset1; S.simu.ext4[1] <- 0.6 #empty space
+
+
+# Loop through timesteps
+for(i in 2:length(tset1)){
+  dt <- tset1[i] - tset1[i-1]
+
+
+  # Store previous timestep values
+  CL <- CL.simu.ext4[i-1]
+  CD <- CD.simu.ext4[i-1]
+  CP <- CP.simu.ext4[i-1]
+  ME <- ME.simu.ext4[i-1]
+  MP <- MP.simu.ext4[i-1]
+  S <- S.simu.ext4[i-1]
+
+  # Compute changes using temperature-dependent gc
+  dCL <- (gc * CL * S + gammaC * S - gmc * CL * (ME + MP) - dc * CL) * dt
+  dCD <- (dc * (CL + CP) + MP * (h * (1 - p) + dm) - gc * CP * CD - settlement * gammaC * CD - gm * CD * (ME + MP) - gammaM * CD - e * CD) * dt
+  dCP <- (gc * CP * CD + settlement * gammaC * CD - gmc * CP * (ME + MP) - dc * CP - e * CP) * dt
+  dME <- (gm * ME * S + gm * MP * S + gammaM * S - ME * (h + dm)) * dt
+  dMP <- (gm * MP * CD + gm * ME * CD + gmc * CL * (ME + MP) + gmc * CP * (ME + MP) + gammaM * CD - MP * (h * (1 - p) + dm + e)) * dt
+  dS <- (1 - CL - CD - CP - ME - MP) * dt  # Ensure total proportion remains 1
+
+  # Update states
+  CL.simu.ext4[i] <- CL + dCL
+  CD.simu.ext4[i] <- CD + dCD
+  CP.simu.ext4[i] <- CP + dCP
+  ME.simu.ext4[i] <- ME + dME
+  MP.simu.ext4[i] <- MP + dMP
+  S.simu.ext4[i] <- S + dS
+}
+
+```
+
+
+#Extension- removing plots (check that first simu ran)
+```{r}
+# plot coral as a function of time
+plot(x = tset1, y = CL.simu.ext4,
      type = 'l', las = 1, lwd = 2, col = CLcol,
      ylim = c(0, 1),
-     xlim= c(0, 50),
      xlab = 'Time', ylab = 'Population Size',
      main = "Extension- Coral community after structure removing disturbance")
- lines(x = tset1, y = CD.simu.ext2,
+ lines(x = tset1, y = CD.simu.ext4,
       lwd = 2, col = CDcol)
- lines(x = tset1, y = CP.simu.ext3,
+ lines(x = tset1, y = CP.simu.ext4,
       lwd = 2, col = CPcol )
- legend(x = 'topright', legend = c('27C', '29C', '25C'), lwd = 5, col = c(CLcol, 'red', 'pink'))
+ legend(x = 'topright', legend = c('CL', 'CD', 'CP'), lwd = 5, col = c(CLcol, CDcol, CPcol))
+
+# plot population macroalgae as a function of time
+plot(x = tset1, y = ME.simu.ext4,
+     type = 'l', las = 1, lwd = 2, col = MEcol,
+     xlab = 'Time', ylab = 'Population Size',
+     main = "Extension- Macroalgal community after structure removing disturbance")
+lines(x = tset1, y = MP.simu.ext,
+      lwd = 2, col = MPcol)
+legend(x = 'topright', legend = c('ME', 'MP'), lwd = 5, col = c(MEcol, MPcol))
+
+# plot open space as a function of time
+plot(x = tset1, y = S.simu.ext4,
+     type = 'l', las = 1, lwd = 2, col = "grey",
+     xlab = 'Time', ylab = 'Population Size',
+     main = "Extension- Empty space after structure removing disturbance")
+legend(x = 'topright', legend = c('open space'), lwd = 5)
+```
+
+```{r}
+# Set temperature scenario (adjust this as needed)
+temperature <- 29  # Example: setting temperature to 29C
+
+# Use the function to determine gc for the given temperature
+gc <- gc_function(temperature)
+
+
+# create holding vectors and fill initial conditions - inital conditions represent proportional cover of the benthos
+CL.simu.ext5 <- NaN*tset1; CL.simu.ext5[1] <- 0.15  #live coral
+CD.simu.ext5 <- NaN*tset1; CD.simu.ext5[1] <- 0.1 #dead coral
+CP.simu.ext5 <- NaN*tset1; CP.simu.ext5[1] <- 0 #live coral on dead coral
+ME.simu.ext5 <- NaN*tset1; ME.simu.ext5[1] <- 0.15 #exposed macroalgae
+MP.simu.ext5 <- NaN*tset1; MP.simu.ext5[1] <- 0.0 #protected macroalgae
+S.simu.ext5 <- NaN*tset1; S.simu.ext5[1] <- 0.6 #empty space
+
+# Loop through timesteps
+for(i in 2:length(tset1)){
+  dt <- tset1[i] - tset1[i-1]
+
+
+  # Store previous timestep values
+  CL <- CL.simu.ext5[i-1]
+  CD <- CD.simu.ext5[i-1]
+  CP <- CP.simu.ext5[i-1]
+  ME <- ME.simu.ext5[i-1]
+  MP <- MP.simu.ext5[i-1]
+  S <- S.simu.ext5[i-1]
+
+  # Compute changes using temperature-dependent gc
+  dCL <- (gc * CL * S + gammaC * S - gmc * CL * (ME + MP) - dc * CL) * dt
+  dCD <- (dc * (CL + CP) + MP * (h * (1 - p) + dm) - gc * CP * CD - settlement * gammaC * CD - gm * CD * (ME + MP) - gammaM * CD - e * CD) * dt
+  dCP <- (gc * CP * CD + settlement * gammaC * CD - gmc * CP * (ME + MP) - dc * CP - e * CP) * dt
+  dME <- (gm * ME * S + gm * MP * S + gammaM * S - ME * (h + dm)) * dt
+  dMP <- (gm * MP * CD + gm * ME * CD + gmc * CL * (ME + MP) + gmc * CP * (ME + MP) + gammaM * CD - MP * (h * (1 - p) + dm + e)) * dt
+  dS <- (1 - CL - CD - CP - ME - MP) * dt  # Ensure total proportion remains 1
+
+  # Update states
+  CL.simu.ext5[i] <- CL + dCL
+  CD.simu.ext5[i] <- CD + dCD
+  CP.simu.ext5[i] <- CP + dCP
+  ME.simu.ext5[i] <- ME + dME
+  MP.simu.ext5[i] <- MP + dMP
+  S.simu.ext5[i] <- S + dS
+}
 ```
 
 
 
+```{r}
+temperature <- 25  # Example: setting temperature to 25°C
+
+# Use the function to determine gc for the given temperature
+gc <- gc_function(temperature)
+
+
+# create holding vectors and fill initial conditions - inital conditions represent proportional cover of the benthos
+CL.simu.ext6 <- NaN*tset1; CL.simu.ext6[1] <- 0.15  #live coral
+CD.simu.ext6 <- NaN*tset1; CD.simu.ext6[1] <- 0.1 #dead coral
+CP.simu.ext6 <- NaN*tset1; CP.simu.ext6[1] <- 0 #live coral on dead coral
+ME.simu.ext6 <- NaN*tset1; ME.simu.ext6[1] <- 0.15 #exposed macroalgae
+MP.simu.ext6 <- NaN*tset1; MP.simu.ext6[1] <- 0.0 #protected macroalgae
+S.simu.ext6 <- NaN*tset1; S.simu.ext6[1] <- 0.6 #empty space
+
+
+# Loop through timesteps
+for(i in 2:length(tset1)){
+  dt <- tset1[i] - tset1[i-1]
+
+
+  # Store previous timestep values
+  CL <- CL.simu.ext6[i-1]
+  CD <- CD.simu.ext6[i-1]
+  CP <- CP.simu.ext6[i-1]
+  ME <- ME.simu.ext6[i-1]
+  MP <- MP.simu.ext6[i-1]
+  S <- S.simu.ext6[i-1]
+
+  # Compute changes using temperature-dependent gc
+  dCL <- (gc * CL * S + gammaC * S - gmc * CL * (ME + MP) - dc * CL) * dt
+  dCD <- (dc * (CL + CP) + MP * (h * (1 - p) + dm) - gc * CP * CD - settlement * gammaC * CD - gm * CD * (ME + MP) - gammaM * CD - e * CD) * dt
+  dCP <- (gc * CP * CD + settlement * gammaC * CD - gmc * CP * (ME + MP) - dc * CP - e * CP) * dt
+  dME <- (gm * ME * S + gm * MP * S + gammaM * S - ME * (h + dm)) * dt
+  dMP <- (gm * MP * CD + gm * ME * CD + gmc * CL * (ME + MP) + gmc * CP * (ME + MP) + gammaM * CD - MP * (h * (1 - p) + dm + e)) * dt
+  dS <- (1 - CL - CD - CP - ME - MP) * dt  # Ensure total proportion remains 1
+
+  # Update states
+  CL.simu.ext6[i] <- CL + dCL
+  CD.simu.ext6[i] <- CD + dCD
+  CP.simu.ext6[i] <- CP + dCP
+  ME.simu.ext6[i] <- ME + dME
+  MP.simu.ext6[i] <- MP + dMP
+  S.simu.ext6[i] <- S + dS
+}
+```
 
 
 
-
+#Structure retaining over diff temperatures
+```{r}
+plot(x = tset1, y = CL.simu.ext6,
+     type = 'l', las = 1, lwd = 2, col = 'pink',
+     ylim = c(0, 1),
+     xlab = 'Time', ylab = 'Population Size',
+     main = "Extension- Coral community after structure removing disturbance")
+ lines(x = tset1, y = CD.simu.ext4,
+      lwd = 2, col = 'red')
+ lines(x = tset1, y = CP.simu.ext5,
+      lwd = 2, col = 'brown' )
+ legend(x = 'topright', legend = c('25C', '27C', '29C'), lwd = 5, col = c('pink', 'red', 'brown'))
+ 
+ 
+ 
+```
