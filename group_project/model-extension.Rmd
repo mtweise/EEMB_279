@@ -259,6 +259,7 @@ for(i in 2:length(tset1)){
 plot(x = tset1, y = CL.simu.ext3,
      type = 'l', las = 1, lwd = 2, col = 'pink',
      ylim = c(0, 1),
+     xlim=c(0,500),
      xlab = 'Time', ylab = 'Population Size',
      main = "Extension- Coral community after structure retaining disturbance")
  lines(x = tset1, y = CD.simu.ext,
@@ -272,6 +273,7 @@ plot(x = tset1, y = CL.simu.ext3,
  plot(x = tset1, y = ME.simu.ext3,
      type = 'l', las = 1, lwd = 2, col = 'lightgreen',
      ylim = c(0, 1),
+     xlim=c(0,500),
      xlab = 'Time', ylab = 'Population Size',
      main = "Extension- Macroalgae community after structure retaining disturbance")
  lines(x = tset1, y = CD.simu.ext,
